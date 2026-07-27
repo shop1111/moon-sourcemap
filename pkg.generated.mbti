@@ -48,9 +48,17 @@ pub fn original_position_for(DecodedSourceMap, generated~ : Position, bias? : Lo
 
 pub fn parse_document(StringView) -> SourceMapDocument raise SourceMapError
 
+pub fn parse_stack_frame(String) -> StackFrame raise SourceMapError
+
 pub fn sort_mappings(ArrayView[Mapping]) -> Array[Mapping]
 
 pub fn source_for_mapping(DecodedSourceMap, Mapping) -> SourceEntry?
+
+pub fn symbolize(DecodedSourceMap, String, bias? : LookupBias) -> Array[SymbolizedFrame] raise SourceMapError
+
+pub fn symbolize_frame(DecodedSourceMap, StackFrame, bias? : LookupBias) -> SymbolizedFrame
+
+pub fn symbolized_frames_to_json(ArrayView[SymbolizedFrame]) -> Json
 
 pub fn validate(SourceMapDocument) -> Array[Diagnostic]
 
@@ -207,6 +215,26 @@ pub(all) enum SourceMapDocument {
 } derive(Eq, @debug.Debug)
 pub fn SourceMapDocument::file(Self) -> String?
 pub fn SourceMapDocument::version(Self) -> Int
+
+pub(all) struct StackFrame {
+  file : String
+  line : Int
+  column : Int
+  function_name : String?
+  raw : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct SymbolizedFrame {
+  generated : StackFrame
+  source : String?
+  line : Int?
+  column : Int?
+  name : String?
+  ignored : Bool
+  matched : Bool
+} derive(Eq, @debug.Debug)
+pub fn SymbolizedFrame::render(Self) -> String
+pub fn SymbolizedFrame::to_json(Self) -> Json
 
 pub(all) struct VlqValue {
   value : Int

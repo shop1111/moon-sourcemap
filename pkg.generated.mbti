@@ -6,6 +6,12 @@ import {
 }
 
 // Values
+pub fn compose(DecodedSourceMap, DecodedSourceMap) -> DecodedSourceMap
+
+pub fn compose_json(StringView, StringView, indent? : Int) -> String raise SourceMapError
+
+pub fn compose_with_options(DecodedSourceMap, DecodedSourceMap, options? : ComposeOptions) -> ComposeResult
+
 pub fn decode_document(SourceMapDocument) -> DecodedSourceMap raise SourceMapError
 
 pub fn decode_mappings(String, sources_count~ : Int, names~ : ArrayView[String]) -> Array[Mapping] raise SourceMapError
@@ -65,6 +71,25 @@ pub fn SourceMapError::path(Self) -> String
 pub fn SourceMapError::to_diagnostic(Self) -> Diagnostic
 
 // Types and methods
+pub(all) struct ComposeOptions {
+  bias : LookupBias
+  missing : MissingMappingPolicy
+  preserve_outer_names : Bool
+}
+pub fn ComposeOptions::default() -> Self
+
+pub(all) struct ComposeResult {
+  map : DecodedSourceMap
+  stats : ComposeStats
+}
+
+pub(all) struct ComposeStats {
+  outer_mappings : Int
+  composed_mappings : Int
+  generated_only : Int
+  dropped : Int
+}
+
 pub(all) struct DecodedSourceMap {
   file : String?
   sources : Array[SourceEntry]
@@ -118,6 +143,11 @@ pub(all) struct Mapping {
 } derive(Eq, @debug.Debug)
 pub fn Mapping::generated_only(generated~ : Position) -> Self
 pub fn Mapping::mapped(generated~ : Position, original~ : OriginalPosition, name? : String) -> Self
+
+pub(all) enum MissingMappingPolicy {
+  KeepGenerated
+  Drop
+} derive(Eq, @debug.Debug)
 
 pub(all) struct OriginalPosition {
   source_index : Int

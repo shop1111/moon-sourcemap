@@ -6,6 +6,11 @@ import {
 }
 
 // Values
+pub fn decode_vlq(String) -> Int raise SourceMapError
+
+pub fn decode_vlq_at(String, offset~ : Int) -> VlqValue raise SourceMapError
+
+pub fn encode_vlq(Int) -> String raise SourceMapError
 
 // Errors
 pub(all) suberror SourceMapError {
@@ -114,6 +119,11 @@ pub(all) enum SourceMapDocument {
 } derive(Eq, @debug.Debug)
 pub fn SourceMapDocument::file(Self) -> String?
 pub fn SourceMapDocument::version(Self) -> Int
+
+pub(all) struct VlqValue {
+  value : Int
+  next_offset : Int
+} derive(Eq, @debug.Debug)
 
 // Type aliases
 

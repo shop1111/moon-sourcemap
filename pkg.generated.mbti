@@ -12,6 +12,10 @@ pub fn decode_vlq(String) -> Int raise SourceMapError
 
 pub fn decode_vlq_at(String, offset~ : Int) -> VlqValue raise SourceMapError
 
+pub fn diagnostics_have_errors(ArrayView[Diagnostic]) -> Bool
+
+pub fn diagnostics_to_json(ArrayView[Diagnostic]) -> Json
+
 pub fn document_to_json(SourceMapDocument) -> Json
 
 pub fn encode_document(SourceMapDocument, indent? : Int) -> String
@@ -27,6 +31,10 @@ pub fn mappings_line_count(String) -> Int
 pub fn parse_document(StringView) -> SourceMapDocument raise SourceMapError
 
 pub fn sort_mappings(ArrayView[Mapping]) -> Array[Mapping]
+
+pub fn validate(SourceMapDocument) -> Array[Diagnostic]
+
+pub fn validate_json(StringView) -> Array[Diagnostic]
 
 // Errors
 pub(all) suberror SourceMapError {
@@ -61,12 +69,15 @@ pub(all) struct Diagnostic {
 } derive(Eq, @debug.Debug)
 pub fn Diagnostic::error(code~ : String, message~ : String, path? : String, mapping_line? : Int, segment? : Int, offset? : Int) -> Self
 pub fn Diagnostic::is_error(Self) -> Bool
+pub fn Diagnostic::render(Self) -> String
+pub fn Diagnostic::to_json(Self) -> Json
 pub fn Diagnostic::warning(code~ : String, message~ : String, path? : String, mapping_line? : Int, segment? : Int, offset? : Int) -> Self
 
 pub(all) enum DiagnosticSeverity {
   Error
   Warning
 } derive(Eq, @debug.Debug)
+pub fn DiagnosticSeverity::label(Self) -> String
 
 pub(all) struct IndexSection {
   offset : Position

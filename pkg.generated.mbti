@@ -209,12 +209,38 @@ pub fn SourceMapBuilder::mapping_count(Self) -> Int
 pub fn SourceMapBuilder::new(file? : String) -> Self
 pub fn SourceMapBuilder::source_count(Self) -> Int
 
+pub(all) struct SourceMapConsumer {
+  map : DecodedSourceMap
+  line_starts : Array[Int]
+  reverse : Map[Int, Array[Int]]
+}
+pub fn SourceMapConsumer::from_document(SourceMapDocument) -> Self raise SourceMapError
+pub fn SourceMapConsumer::generated_positions_for(Self, source_index~ : Int, line? : Int, column? : Int) -> Array[Mapping]
+pub fn SourceMapConsumer::new(DecodedSourceMap) -> Self
+pub fn SourceMapConsumer::original_position_for(Self, generated~ : Position, bias? : LookupBias) -> Mapping?
+pub fn SourceMapConsumer::original_positions_for(Self, ArrayView[Position], bias? : LookupBias) -> Array[Mapping?]
+pub fn SourceMapConsumer::source_index_for_url(Self, String) -> Int?
+pub fn SourceMapConsumer::source_indices_for_url(Self, String) -> Array[Int]
+pub fn SourceMapConsumer::stats(Self) -> SourceMapStats
+
 pub(all) enum SourceMapDocument {
   Regular(RegularSourceMap)
   Indexed(IndexSourceMap)
 } derive(Eq, @debug.Debug)
 pub fn SourceMapDocument::file(Self) -> String?
 pub fn SourceMapDocument::version(Self) -> Int
+
+pub(all) struct SourceMapStats {
+  sources : Int
+  mappings : Int
+  mapped : Int
+  generated_only : Int
+  named : Int
+  ignored_sources : Int
+  generated_lines : Int
+  original_lines : Int
+}
+pub fn SourceMapStats::to_json(Self) -> Json
 
 pub(all) struct StackFrame {
   file : String

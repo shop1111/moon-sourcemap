@@ -38,7 +38,7 @@ pub fn encode_document(SourceMapDocument, indent? : Int) -> String
 
 pub fn encode_mappings(ArrayView[Mapping], names~ : ArrayView[String]) -> String raise SourceMapError
 
-pub fn encode_vlq(Int) -> String raise SourceMapError
+pub fn encode_vlq(Int) -> String
 
 pub fn flatten(SourceMapDocument) -> RegularSourceMap raise SourceMapError
 

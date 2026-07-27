@@ -9,7 +9,7 @@ fn find_name_index(names : ArrayView[String], target : String) -> Int? {
 }
 
 ///|
-fn append_vlq(output : StringBuilder, value : Int) -> Unit raise SourceMapError {
+fn append_vlq(output : StringBuilder, value : Int) -> Unit {
   output.write_string(encode_vlq(value))
 }
 

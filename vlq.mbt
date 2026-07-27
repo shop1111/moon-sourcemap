@@ -6,7 +6,7 @@ pub(all) struct VlqValue {
 } derive(Eq, Debug)
 
 ///|
-const MAX_VLQ_ABS : Int = 1073741823
+const MAX_VLQ_INT : Int = 2147483647
 
 ///|
 fn base64_digit_to_char(value : Int) -> Char {
@@ -33,22 +33,15 @@ fn base64_char_to_digit(ch : Char) -> Int? {
 /// Encode one signed integer using the Base64-VLQ alphabet required by
 /// ECMA-426.
 ///
-/// Values whose magnitude exceeds 2^30-1 are rejected because doubling them
-/// cannot be represented safely by MoonBit's signed `Int`.
-pub fn encode_vlq(value : Int) -> String raise SourceMapError {
-  if value > MAX_VLQ_ABS || value < -MAX_VLQ_ABS {
-    raise InvalidVlq(
-      offset=0,
-      message="value is outside the supported signed VLQ range",
-    )
-  }
-  let signed = if value < 0 { -value * 2 + 1 } else { value * 2 }
+pub fn encode_vlq(value : Int) -> String {
+  let wide = value.to_int64()
+  let signed : Int64 = if wide < 0L { -wide * 2L + 1L } else { wide * 2L }
   let output = StringBuilder()
   let mut remaining = signed
   for ;; {
-    let mut digit = remaining % 32
-    remaining = remaining / 32
-    if remaining > 0 {
+    let mut digit = (remaining % 32L).to_int()
+    remaining = remaining / 32L
+    if remaining > 0L {
       digit = digit + 32
     }
     output.write_char(base64_digit_to_char(digit))
@@ -72,8 +65,8 @@ pub fn decode_vlq_at(
     raise InvalidVlq(offset~, message="expected a Base64-VLQ value")
   }
   let mut cursor = offset
-  let mut accumulated = 0
-  let mut multiplier = 1
+  let mut accumulated = 0L
+  let mut multiplier = 1L
   let mut digits = 0
   for ;; {
     let ch = match input.get_char(cursor) {
@@ -88,11 +81,11 @@ pub fn decode_vlq_at(
     }
     let continuation = digit >= 32
     let payload = digit % 32
-    if payload > 0 && multiplier > MAX_VLQ_ABS / payload {
+    if payload > 0 && multiplier > 4294967297L / payload.to_int64() {
       raise InvalidVlq(offset=cursor, message="Base64-VLQ value overflows Int")
     }
-    let contribution = payload * multiplier
-    if accumulated > MAX_VLQ_ABS * 2 - contribution {
+    let contribution = payload.to_int64() * multiplier
+    if accumulated > 4294967297L - contribution {
       raise InvalidVlq(offset=cursor, message="Base64-VLQ value overflows Int")
     }
     accumulated = accumulated + contribution
@@ -107,17 +100,21 @@ pub fn decode_vlq_at(
     if cursor >= input.length() {
       raise InvalidVlq(offset=cursor, message="unterminated Base64-VLQ value")
     }
-    if multiplier > MAX_VLQ_ABS / 32 {
+    if multiplier > 4294967297L / 32L {
       raise InvalidVlq(
         offset=cursor,
         message="Base64-VLQ multiplier overflows Int",
       )
     }
-    multiplier = multiplier * 32
+    multiplier = multiplier * 32L
   }
-  let negative = accumulated % 2 == 1
-  let magnitude = accumulated / 2
-  { value: if negative { -magnitude } else { magnitude }, next_offset: cursor }
+  let negative = accumulated % 2L == 1L
+  let magnitude = accumulated / 2L
+  if !negative && magnitude > MAX_VLQ_INT.to_int64() {
+    raise InvalidVlq(offset~, message="positive Base64-VLQ value overflows Int")
+  }
+  let value = if negative { (-magnitude).to_int() } else { magnitude.to_int() }
+  { value, next_offset: cursor }
 }
 
 ///|

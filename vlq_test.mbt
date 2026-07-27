@@ -9,7 +9,10 @@ test "Base64-VLQ encodes canonical small values" {
 
 ///|
 test "Base64-VLQ round trips representative values" {
-  for value in [-100000, -4096, -33, -1, 0, 1, 31, 32, 4096, 100000] {
+  for
+    value in [
+      -2147483648, -100000, -4096, -33, -1, 0, 1, 31, 32, 4096, 100000, 2147483647,
+    ] {
     assert_eq(
       @moon_sourcemap.decode_vlq(@moon_sourcemap.encode_vlq(value)),
       value,

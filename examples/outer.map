@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "file": "demo.min.js",
+  "sources": ["demo.js"],
+  "names": ["greet"],
+  "mappings": "AAAAA;AACA"
+}

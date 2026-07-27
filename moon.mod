@@ -22,3 +22,7 @@ license = "Apache-2.0"
 keywords = [ "source-map", "ecma-426", "debugging", "symbolization", "vlq" ]
 
 description = "A pure MoonBit ECMA-426 Source Map library and command-line toolkit."
+
+import {
+  "moonbitlang/x@0.4.45",
+}

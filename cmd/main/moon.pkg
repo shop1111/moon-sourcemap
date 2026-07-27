@@ -1,6 +1,11 @@
-// import {
-//   "shop1111/moon_sourcemap" @lib,
-// }
+import {
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/core/string" @strconv,
+  "moonbitlang/x/fs",
+  "moonbitlang/x/sys",
+  "shop1111/moon_sourcemap" @lib,
+}
 
 options(
   "is-main": true,

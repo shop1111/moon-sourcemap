@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "file": "demo.js",
+  "sources": ["src/demo.ts"],
+  "names": ["greet"],
+  "mappings": "AACAA;AAEA"
+}

@@ -154,6 +154,23 @@ pub(all) struct SourceEntry {
 } derive(Eq, @debug.Debug)
 pub fn SourceEntry::new(url? : String, content? : String, ignored? : Bool) -> Self
 
+pub(all) struct SourceMapBuilder {
+  file : String?
+  sources : Array[SourceEntry]
+  names : Array[String]
+  mappings : Array[Mapping]
+}
+pub fn SourceMapBuilder::add_generated(Self, generated~ : Position) -> Unit raise SourceMapError
+pub fn SourceMapBuilder::add_mapping(Self, generated~ : Position, source_index~ : Int, original_line~ : Int, original_column~ : Int, name? : String) -> Unit raise SourceMapError
+pub fn SourceMapBuilder::add_name(Self, String) -> Int
+pub fn SourceMapBuilder::add_source(Self, url? : String, content? : String, ignored? : Bool) -> Int
+pub fn SourceMapBuilder::build(Self) -> RegularSourceMap raise SourceMapError
+pub fn SourceMapBuilder::build_decoded(Self) -> DecodedSourceMap
+pub fn SourceMapBuilder::clear_mappings(Self) -> Unit
+pub fn SourceMapBuilder::mapping_count(Self) -> Int
+pub fn SourceMapBuilder::new(file? : String) -> Self
+pub fn SourceMapBuilder::source_count(Self) -> Int
+
 pub(all) enum SourceMapDocument {
   Regular(RegularSourceMap)
   Indexed(IndexSourceMap)

@@ -6,11 +6,15 @@ import {
 }
 
 // Values
+pub fn decode_mappings(String, sources_count~ : Int, names~ : ArrayView[String]) -> Array[Mapping] raise SourceMapError
+
 pub fn decode_vlq(String) -> Int raise SourceMapError
 
 pub fn decode_vlq_at(String, offset~ : Int) -> VlqValue raise SourceMapError
 
 pub fn encode_vlq(Int) -> String raise SourceMapError
+
+pub fn mappings_line_count(String) -> Int
 
 // Errors
 pub(all) suberror SourceMapError {

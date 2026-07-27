@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn decode_document(SourceMapDocument) -> DecodedSourceMap raise SourceMapError
+
 pub fn decode_mappings(String, sources_count~ : Int, names~ : ArrayView[String]) -> Array[Mapping] raise SourceMapError
 
 pub fn decode_regular_source_map(RegularSourceMap) -> DecodedSourceMap raise SourceMapError
@@ -20,11 +22,15 @@ pub fn diagnostics_to_json(ArrayView[Diagnostic]) -> Json
 
 pub fn document_to_json(SourceMapDocument) -> Json
 
+pub fn encode_decoded(DecodedSourceMap) -> RegularSourceMap raise SourceMapError
+
 pub fn encode_document(SourceMapDocument, indent? : Int) -> String
 
 pub fn encode_mappings(ArrayView[Mapping], names~ : ArrayView[String]) -> String raise SourceMapError
 
 pub fn encode_vlq(Int) -> String raise SourceMapError
+
+pub fn flatten(SourceMapDocument) -> RegularSourceMap raise SourceMapError
 
 pub fn generated_positions_for(DecodedSourceMap, source_index~ : Int, line~ : Int, column? : Int) -> Array[Mapping]
 

@@ -8,6 +8,8 @@ import {
 // Values
 pub fn decode_mappings(String, sources_count~ : Int, names~ : ArrayView[String]) -> Array[Mapping] raise SourceMapError
 
+pub fn decode_regular_source_map(RegularSourceMap) -> DecodedSourceMap raise SourceMapError
+
 pub fn decode_vlq(String) -> Int raise SourceMapError
 
 pub fn decode_vlq_at(String, offset~ : Int) -> VlqValue raise SourceMapError
@@ -24,13 +26,19 @@ pub fn encode_mappings(ArrayView[Mapping], names~ : ArrayView[String]) -> String
 
 pub fn encode_vlq(Int) -> String raise SourceMapError
 
+pub fn generated_positions_for(DecodedSourceMap, source_index~ : Int, line~ : Int, column? : Int) -> Array[Mapping]
+
 pub fn mappings_are_sorted(ArrayView[Mapping]) -> Bool
 
 pub fn mappings_line_count(String) -> Int
 
+pub fn original_position_for(DecodedSourceMap, generated~ : Position, bias? : LookupBias) -> Mapping?
+
 pub fn parse_document(StringView) -> SourceMapDocument raise SourceMapError
 
 pub fn sort_mappings(ArrayView[Mapping]) -> Array[Mapping]
+
+pub fn source_for_mapping(DecodedSourceMap, Mapping) -> SourceEntry?
 
 pub fn validate(SourceMapDocument) -> Array[Diagnostic]
 

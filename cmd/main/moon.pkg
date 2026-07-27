@@ -1,0 +1,7 @@
+// import {
+//   "shop1111/moon_sourcemap" @lib,
+// }
+
+options(
+  "is-main": true,
+)

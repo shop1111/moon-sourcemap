@@ -24,7 +24,7 @@ jobs:
       - name: Format
         run: moon fmt --check
       - name: Check all stable targets
-        run: moon check --target all --deny-warn
+        run: moon check --target all --deny-warn --warn-list +73
       - name: Build all stable targets
         run: moon build --target all --deny-warn
       - name: Test all stable targets
@@ -33,6 +33,29 @@ jobs:
         run: |
           moon info
           git diff --exit-code
+      - name: CLI acceptance
+        run: |
+          mkdir -p _build/ci
+          moon run --target native cmd/main -- validate examples/demo.min.js.map
+          moon run --target native cmd/main -- lookup examples/demo.min.js.map --line 0 --column 4 --format json
+          moon run --target native cmd/main -- symbolize examples/demo.min.js.map examples/frames.txt --format json
+          moon run --target native cmd/main -- flatten examples/demo.min.js.map -o _build/ci/flattened.map
+          moon run --target native cmd/main -- compose examples/outer.map examples/inner.map -o _build/ci/composed.map
+          moon run --target native cmd/main -- validate _build/ci/composed.map
+      - name: Effective production line count
+        shell: bash
+        run: |
+          count="$(
+            find . -name '*.mbt' \
+              -not -path './_build/*' \
+              -not -path './.mooncakes/*' \
+              -not -name '*_test.mbt' \
+              -not -name '*_wbtest.mbt' \
+              -print0 |
+            xargs -0 awk 'NF && $0 !~ /^[[:space:]]*\/\// { count++ } END { print count + 0 }'
+          )"
+          echo "effective production MoonBit lines: $count"
+          test "$count" -ge 2000
       - name: Package
         run: |
           moon package

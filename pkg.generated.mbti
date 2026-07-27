@@ -1,11 +1,119 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "shop1111/moon_sourcemap"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
 
 // Errors
+pub(all) suberror SourceMapError {
+  InvalidJson(message~ : String)
+  InvalidField(path~ : String, message~ : String)
+  InvalidVlq(offset~ : Int, message~ : String)
+  InvalidMappings(line~ : Int, segment~ : Int, offset~ : Int, message~ : String)
+  InvalidDocument(message~ : String)
+  Io(message~ : String)
+} derive(Eq, @debug.Debug)
+pub fn SourceMapError::code(Self) -> String
+pub fn SourceMapError::message(Self) -> String
+pub fn SourceMapError::path(Self) -> String
+pub fn SourceMapError::to_diagnostic(Self) -> Diagnostic
 
 // Types and methods
+pub(all) struct DecodedSourceMap {
+  file : String?
+  sources : Array[SourceEntry]
+  mappings : Array[Mapping]
+} derive(Eq, @debug.Debug)
+pub fn DecodedSourceMap::new(file? : String, sources? : Array[SourceEntry], mappings? : Array[Mapping]) -> Self
+
+pub(all) struct Diagnostic {
+  severity : DiagnosticSeverity
+  code : String
+  message : String
+  path : String
+  mapping_line : Int?
+  segment : Int?
+  offset : Int?
+} derive(Eq, @debug.Debug)
+pub fn Diagnostic::error(code~ : String, message~ : String, path? : String, mapping_line? : Int, segment? : Int, offset? : Int) -> Self
+pub fn Diagnostic::is_error(Self) -> Bool
+pub fn Diagnostic::warning(code~ : String, message~ : String, path? : String, mapping_line? : Int, segment? : Int, offset? : Int) -> Self
+
+pub(all) enum DiagnosticSeverity {
+  Error
+  Warning
+} derive(Eq, @debug.Debug)
+
+pub(all) struct IndexSection {
+  offset : Position
+  map : SourceMapDocument
+} derive(Eq, @debug.Debug)
+pub fn IndexSection::new(offset~ : Position, map~ : SourceMapDocument) -> Self
+
+pub(all) struct IndexSourceMap {
+  version : Int
+  file : String?
+  sections : Array[IndexSection]
+} derive(Eq, @debug.Debug)
+pub fn IndexSourceMap::new(file? : String, sections? : Array[IndexSection]) -> Self
+
+pub(all) enum LookupBias {
+  GreatestLowerBound
+  LeastUpperBound
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Mapping {
+  generated : Position
+  original : OriginalPosition?
+  name : String?
+} derive(Eq, @debug.Debug)
+pub fn Mapping::generated_only(generated~ : Position) -> Self
+pub fn Mapping::mapped(generated~ : Position, original~ : OriginalPosition, name? : String) -> Self
+
+pub(all) struct OriginalPosition {
+  source_index : Int
+  line : Int
+  column : Int
+} derive(Eq, @debug.Debug)
+pub fn OriginalPosition::is_valid(Self) -> Bool
+pub fn OriginalPosition::new(source_index~ : Int, line~ : Int, column~ : Int) -> Self
+
+pub(all) struct Position {
+  line : Int
+  column : Int
+} derive(Eq, @debug.Debug)
+pub fn Position::compare(Self, Self) -> Int
+pub fn Position::is_valid(Self) -> Bool
+pub fn Position::new(line~ : Int, column~ : Int) -> Self
+
+pub(all) struct RegularSourceMap {
+  version : Int
+  file : String?
+  source_root : String?
+  sources : Array[String?]
+  sources_content : Array[String?]?
+  names : Array[String]
+  mappings : String
+  ignore_list : Array[Int]
+} derive(Eq, @debug.Debug)
+pub fn RegularSourceMap::new(file? : String, source_root? : String, sources? : Array[String?], sources_content? : Array[String?], names? : Array[String], mappings? : String, ignore_list? : Array[Int]) -> Self
+
+pub(all) struct SourceEntry {
+  url : String?
+  content : String?
+  ignored : Bool
+} derive(Eq, @debug.Debug)
+pub fn SourceEntry::new(url? : String, content? : String, ignored? : Bool) -> Self
+
+pub(all) enum SourceMapDocument {
+  Regular(RegularSourceMap)
+  Indexed(IndexSourceMap)
+} derive(Eq, @debug.Debug)
+pub fn SourceMapDocument::file(Self) -> String?
+pub fn SourceMapDocument::version(Self) -> Int
 
 // Type aliases
 

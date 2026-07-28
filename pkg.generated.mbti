@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn analyze_source_map(DecodedSourceMap) -> SourceMapReport
+
 pub fn canonicalize(DecodedSourceMap, duplicate_policy? : DuplicateMappingPolicy, remove_unused_sources? : Bool) -> TransformResult
 
 pub fn classify_source_path(String?) -> SourcePathKind
@@ -45,6 +47,10 @@ pub fn encode_vlq(Int) -> String
 pub fn flatten(SourceMapDocument) -> RegularSourceMap raise SourceMapError
 
 pub fn generated_positions_for(DecodedSourceMap, source_index~ : Int, line~ : Int, column? : Int) -> Array[Mapping]
+
+pub fn mapping_spans(DecodedSourceMap) -> Array[GeneratedSpan]
+
+pub fn mapping_spans_for_line(DecodedSourceMap, Int) -> Array[GeneratedSpan]
 
 pub fn mappings_are_sorted(ArrayView[Mapping]) -> Bool
 
@@ -149,6 +155,13 @@ pub(all) enum DuplicateMappingPolicy {
   KeepLast
   KeepAll
 } derive(Eq, @debug.Debug)
+
+pub(all) struct GeneratedSpan {
+  mapping : Mapping
+  end : Position?
+} derive(Eq, @debug.Debug)
+pub fn GeneratedSpan::column_width(Self) -> Int?
+pub fn GeneratedSpan::contains(Self, Position) -> Bool
 
 pub(all) struct IndexSection {
   offset : Position
@@ -272,6 +285,26 @@ pub(all) enum SourceMapDocument {
 pub fn SourceMapDocument::file(Self) -> String?
 pub fn SourceMapDocument::version(Self) -> Int
 
+pub(all) struct SourceMapReport {
+  file : String?
+  sources : Int
+  mappings : Int
+  mapped_segments : Int
+  generated_only_segments : Int
+  named_segments : Int
+  ignored_sources : Int
+  embedded_sources : Int
+  referenced_sources : Int
+  unreferenced_sources : Int
+  generated_lines : Int
+  original_lines : Int
+  duplicate_positions : Int
+  open_spans : Int
+  source_usage : Array[SourceUsage]
+} derive(Eq, @debug.Debug)
+pub fn SourceMapReport::render(Self) -> String
+pub fn SourceMapReport::to_json(Self) -> Json
+
 pub(all) struct SourceMapStats {
   sources : Int
   mappings : Int
@@ -311,6 +344,17 @@ pub fn SourceTextIndex::context(Self, source? : String, line~ : Int, column~ : I
 pub fn SourceTextIndex::line(Self, Int) -> SourceLine?
 pub fn SourceTextIndex::line_count(Self) -> Int
 pub fn SourceTextIndex::new(String) -> Self
+
+pub(all) struct SourceUsage {
+  source_index : Int
+  url : String?
+  mapped_segments : Int
+  named_segments : Int
+  original_lines : Int
+  ignored : Bool
+  has_content : Bool
+} derive(Eq, @debug.Debug)
+pub fn SourceUsage::to_json(Self) -> Json
 
 pub(all) struct StackFrame {
   file : String

@@ -4,10 +4,11 @@ fn usage() -> String {
     #|MoonSourceMap 0.1.0
     #|Usage:
     #|  moon-sourcemap validate <map> [--format text|json]
+    #|  moon-sourcemap inspect <map> [--format text|json]
     #|  moon-sourcemap lookup <map> --line N --column N [--bias glb|lub] [--strict] [--format text|json]
     #|  moon-sourcemap flatten <map> -o <output> [--format text|json]
     #|  moon-sourcemap compose <outer> <inner> -o <output> [--format text|json]
-    #|  moon-sourcemap symbolize <map> <frames> [--strict] [--format text|json]
+    #|  moon-sourcemap symbolize <map> <frames> [--context N] [--strict] [--format text|json]
     #|
     #|Coordinates are zero-based. Exit codes: 0 success, 1 usage/I/O,
     #|2 invalid source map, 3 strict lookup/symbolization miss.
@@ -98,6 +99,30 @@ fn validate_command(args : Array[String]) -> Int raise {
   } else {
     0
   }
+}
+
+///|
+fn inspect_command(args : Array[String]) -> Int raise {
+  if args.length() < 3 {
+    fail("inspect requires a map path")
+  }
+  let map = @lib.decode_document(read_document(args[2]), map_url=args[2])
+  let report = @lib.analyze_source_map(map)
+  let diagnostics = report.diagnostics()
+  if format_of(args) == "json" {
+    println(
+      Json::object({
+        "report": report.to_json(),
+        "diagnostics": @lib.diagnostics_to_json(diagnostics),
+      }).stringify(indent=2),
+    )
+  } else {
+    println(report.render())
+    if !diagnostics.is_empty() {
+      println(diagnostic_text(diagnostics))
+    }
+  }
+  0
 }
 
 ///|
@@ -228,16 +253,39 @@ fn symbolize_command(args : Array[String]) -> Int raise {
     fail("symbolize requires a map and frames path")
   }
   let map = @lib.decode_document(read_document(args[2]))
-  let frames = @lib.symbolize(map, @fs.read_file_to_string(args[3]))
-  if format_of(args) == "json" {
-    println(@lib.symbolized_frames_to_json(frames).stringify(indent=2))
-  } else {
-    println(frames.map(frame => frame.render()).join("\n"))
-  }
-  if has_flag(args, "--strict") && frames.any(frame => !frame.matched) {
-    3
-  } else {
-    0
+  let frame_text = @fs.read_file_to_string(args[3])
+  match option(args, "--context") {
+    Some(_) => {
+      let radius = parse_coordinate(args, "--context")
+      let report = @lib.symbolize_with_context(
+        map,
+        frame_text,
+        context_radius=radius,
+      )
+      if format_of(args) == "json" {
+        println(report.to_json().stringify(indent=2))
+      } else {
+        println(report.render())
+      }
+      if has_flag(args, "--strict") && !report.is_complete() {
+        3
+      } else {
+        0
+      }
+    }
+    None => {
+      let frames = @lib.symbolize(map, frame_text)
+      if format_of(args) == "json" {
+        println(@lib.symbolized_frames_to_json(frames).stringify(indent=2))
+      } else {
+        println(frames.map(frame => frame.render()).join("\n"))
+      }
+      if has_flag(args, "--strict") && frames.any(frame => !frame.matched) {
+        3
+      } else {
+        0
+      }
+    }
   }
 }
 
@@ -249,6 +297,7 @@ fn dispatch(args : Array[String]) -> Int raise {
   }
   match args[1] {
     "validate" => validate_command(args)
+    "inspect" => inspect_command(args)
     "lookup" => lookup_command(args)
     "flatten" => flatten_command(args)
     "compose" => compose_command(args)

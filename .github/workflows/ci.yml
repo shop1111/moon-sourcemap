@@ -37,8 +37,10 @@ jobs:
         run: |
           mkdir -p _build/ci
           moon run --target native cmd/main -- validate examples/demo.min.js.map
+          moon run --target native cmd/main -- inspect examples/demo.min.js.map --format json
           moon run --target native cmd/main -- lookup examples/demo.min.js.map --line 0 --column 4 --format json
           moon run --target native cmd/main -- symbolize examples/demo.min.js.map examples/frames.txt --format json
+          moon run --target native cmd/main -- symbolize examples/demo.min.js.map examples/frames.txt --context 1
           moon run --target native cmd/main -- flatten examples/demo.min.js.map -o _build/ci/flattened.map
           moon run --target native cmd/main -- compose examples/outer.map examples/inner.map -o _build/ci/composed.map
           moon run --target native cmd/main -- validate _build/ci/composed.map
@@ -55,7 +57,8 @@ jobs:
             xargs -0 awk 'NF && $0 !~ /^[[:space:]]*\/\// { count++ } END { print count + 0 }'
           )"
           echo "effective production MoonBit lines: $count"
-          test "$count" -ge 2000
+          test "$count" -ge 4000
+          test "$count" -lt 4500
       - name: Package
         run: |
           moon package

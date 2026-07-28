@@ -11,4 +11,7 @@
 - Build normalized maps incrementally and canonicalize decoded maps.
 - Provide `validate`, `lookup`, `flatten`, `compose` and `symbolize` CLI
   commands with stable JSON output and exit codes.
+- Resolve source URLs relative to map URLs and index embedded source context.
+- Analyze generated spans, source usage and mapping coverage through `inspect`.
+- Route and symbolize multi-file stack traces with `SourceMapRegistry`.
 - Verify all four stable MoonBit targets and selected licensed TC39 cases.

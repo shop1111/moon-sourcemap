@@ -98,10 +98,11 @@ test "build a map" {
 
 ```text
 moon-sourcemap validate <map> [--format text|json]
+moon-sourcemap inspect <map> [--format text|json]
 moon-sourcemap lookup <map> --line N --column N [--bias glb|lub] [--strict]
 moon-sourcemap flatten <map> -o <output>
 moon-sourcemap compose <outer> <inner> -o <output>
-moon-sourcemap symbolize <map> <frames> [--strict] [--format text|json]
+moon-sourcemap symbolize <map> <frames> [--context N] [--strict] [--format text|json]
 ```
 
 退出码固定为：
@@ -135,10 +136,10 @@ v0.1 不实现仍在演进的 Scopes、Range Mappings、Debug ID 与 Env
 
 ### 当前里程碑
 
-当前版本已经形成可运行的初审成果：核心库、五命令 CLI、四后端测试、
-TC39 选例、CI、示例和发布元数据均已闭环。生产 MoonBit 有效代码由 CI
-执行最低 2000 行门槛；3.8k–4.5k 是完整 v0.1 的规模目标，不把测试、
-空行、纯注释、示例或第三方数据计入。
+当前 0.1.0 已完成核心库、六命令 CLI、源码上下文、多文件 map registry、
+结构质量报告、TC39 选例、四后端 CI、示例和发布元数据。生产 MoonBit
+有效代码由 CI 强制保持在 4000–4499 行，不把测试、空行、纯注释、示例
+或第三方数据计入。
 
 ## English
 

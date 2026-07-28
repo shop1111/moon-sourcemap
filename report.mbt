@@ -21,6 +21,19 @@ pub(all) struct SourceUsage {
 } derive(Eq, Debug)
 
 ///|
+/// Mapping distribution for one generated line.
+pub(all) struct GeneratedLineUsage {
+  line : Int
+  segments : Int
+  mapped_segments : Int
+  generated_only_segments : Int
+  named_segments : Int
+  duplicate_positions : Int
+  first_column : Int
+  last_column : Int
+} derive(Eq, Debug)
+
+///|
 /// Structural quality report for one decoded source map.
 pub(all) struct SourceMapReport {
   file : String?
@@ -38,6 +51,7 @@ pub(all) struct SourceMapReport {
   duplicate_positions : Int
   open_spans : Int
   source_usage : Array[SourceUsage]
+  generated_line_usage : Array[GeneratedLineUsage]
 } derive(Eq, Debug)
 
 ///|
@@ -161,6 +175,53 @@ fn all_source_usage(map : DecodedSourceMap) -> Array[SourceUsage] {
 }
 
 ///|
+fn generated_line_usage(map : DecodedSourceMap) -> Array[GeneratedLineUsage] {
+  let sorted = sort_mappings(map.mappings)
+  let result : Array[GeneratedLineUsage] = []
+  let mut cursor = 0
+  while cursor < sorted.length() {
+    let line = sorted[cursor].generated.line
+    let first_column = sorted[cursor].generated.column
+    let mut last_column = first_column
+    let mut segments = 0
+    let mut mapped_segments = 0
+    let mut generated_only_segments = 0
+    let mut named_segments = 0
+    let mut duplicate_positions = 0
+    let mut previous_column : Int? = None
+    while cursor < sorted.length() && sorted[cursor].generated.line == line {
+      let mapping = sorted[cursor]
+      segments = segments + 1
+      last_column = mapping.generated.column
+      if previous_column == Some(mapping.generated.column) {
+        duplicate_positions = duplicate_positions + 1
+      }
+      previous_column = Some(mapping.generated.column)
+      if mapping.original is Some(_) {
+        mapped_segments = mapped_segments + 1
+      } else {
+        generated_only_segments = generated_only_segments + 1
+      }
+      if mapping.name is Some(_) {
+        named_segments = named_segments + 1
+      }
+      cursor = cursor + 1
+    }
+    result.push({
+      line,
+      segments,
+      mapped_segments,
+      generated_only_segments,
+      named_segments,
+      duplicate_positions,
+      first_column,
+      last_column,
+    })
+  }
+  result
+}
+
+///|
 /// Analyze decoded map structure without requiring generated source text.
 ///
 /// Counts refer to mapping segments rather than bytes or characters, because a
@@ -205,6 +266,7 @@ pub fn analyze_source_map(map : DecodedSourceMap) -> SourceMapReport {
     duplicate_positions: duplicate_generated_positions(map.mappings),
     open_spans,
     source_usage: usage,
+    generated_line_usage: generated_line_usage(map),
   }
 }
 
@@ -231,6 +293,23 @@ pub fn SourceUsage::to_json(self : SourceUsage) -> Json {
 }
 
 ///|
+/// Convert generated-line usage to JSON.
+pub fn GeneratedLineUsage::to_json(self : GeneratedLineUsage) -> Json {
+  Json::object({
+    "line": Json::number(self.line.to_double()),
+    "segments": Json::number(self.segments.to_double()),
+    "mapped_segments": Json::number(self.mapped_segments.to_double()),
+    "generated_only_segments": Json::number(
+      self.generated_only_segments.to_double(),
+    ),
+    "named_segments": Json::number(self.named_segments.to_double()),
+    "duplicate_positions": Json::number(self.duplicate_positions.to_double()),
+    "first_column": Json::number(self.first_column.to_double()),
+    "last_column": Json::number(self.last_column.to_double()),
+  })
+}
+
+///|
 /// Convert the complete report to stable JSON.
 pub fn SourceMapReport::to_json(self : SourceMapReport) -> Json {
   Json::object({
@@ -252,6 +331,9 @@ pub fn SourceMapReport::to_json(self : SourceMapReport) -> Json {
     "open_spans": Json::number(self.open_spans.to_double()),
     "source_usage": Json::array(
       self.source_usage.map(source => source.to_json()),
+    ),
+    "generated_line_usage": Json::array(
+      self.generated_line_usage.map(line => line.to_json()),
     ),
   })
 }
@@ -357,4 +439,247 @@ pub fn analyze_source_map_json(
   map_url? : String,
 ) -> SourceMapReport raise SourceMapError {
   analyze_source_map(decode_document(parse_document(input), map_url?))
+}
+
+///|
+/// Percentage of sources referenced by at least one mapping.
+pub fn SourceMapReport::source_coverage_percent(self : SourceMapReport) -> Int {
+  if self.sources == 0 {
+    100
+  } else {
+    self.referenced_sources * 100 / self.sources
+  }
+}
+
+///|
+/// Percentage of segments carrying original positions.
+pub fn SourceMapReport::mapping_coverage_percent(self : SourceMapReport) -> Int {
+  if self.mappings == 0 {
+    100
+  } else {
+    self.mapped_segments * 100 / self.mappings
+  }
+}
+
+///|
+/// Percentage of sources with embedded content.
+pub fn SourceMapReport::content_coverage_percent(self : SourceMapReport) -> Int {
+  if self.sources == 0 {
+    100
+  } else {
+    self.embedded_sources * 100 / self.sources
+  }
+}
+
+///|
+/// Return whether every segment maps to an original position.
+pub fn SourceMapReport::has_complete_mappings(self : SourceMapReport) -> Bool {
+  self.mappings > 0 && self.generated_only_segments == 0
+}
+
+///|
+/// Return whether every declared source is referenced.
+pub fn SourceMapReport::has_complete_source_usage(
+  self : SourceMapReport,
+) -> Bool {
+  self.unreferenced_sources == 0
+}
+
+///|
+/// Return whether every source carries embedded content.
+pub fn SourceMapReport::has_complete_sources_content(
+  self : SourceMapReport,
+) -> Bool {
+  self.sources == self.embedded_sources
+}
+
+///|
+/// Return a concise CI summary line.
+pub fn SourceMapReport::summary(self : SourceMapReport) -> String {
+  "mappings=\{self.mappings} mapped=\{self.mapping_coverage_percent()}% " +
+  "sources=\{self.sources} referenced=\{self.source_coverage_percent()}% " +
+  "embedded=\{self.content_coverage_percent()}% duplicates=\{self.duplicate_positions}"
+}
+
+///|
+/// Return generated-line metrics for an exact line number.
+pub fn SourceMapReport::generated_line(
+  self : SourceMapReport,
+  line : Int,
+) -> GeneratedLineUsage? {
+  for usage in self.generated_line_usage {
+    if usage.line == line {
+      return Some(usage)
+    }
+  }
+  None
+}
+
+///|
+/// Return the generated line with the most mapping segments.
+pub fn SourceMapReport::busiest_generated_line(
+  self : SourceMapReport,
+) -> GeneratedLineUsage? {
+  let mut busiest : GeneratedLineUsage? = None
+  for usage in self.generated_line_usage {
+    match busiest {
+      Some(previous) =>
+        if usage.segments > previous.segments {
+          busiest = Some(usage)
+        }
+      None => busiest = Some(usage)
+    }
+  }
+  busiest
+}
+
+///|
+/// Count generated lines that contain no mapping segments.
+pub fn SourceMapReport::empty_generated_lines(self : SourceMapReport) -> Int {
+  if self.generated_lines == 0 {
+    return 0
+  }
+  self.generated_lines - self.generated_line_usage.length()
+}
+
+///|
+/// Return source indexes that are never referenced by mappings.
+pub fn SourceMapReport::unreferenced_source_indices(
+  self : SourceMapReport,
+) -> Array[Int] {
+  let result : Array[Int] = []
+  for usage in self.source_usage {
+    if usage.mapped_segments == 0 {
+      result.push(usage.source_index)
+    }
+  }
+  result
+}
+
+///|
+/// Return source indexes marked as ignored.
+pub fn SourceMapReport::ignored_source_indices(
+  self : SourceMapReport,
+) -> Array[Int] {
+  let result : Array[Int] = []
+  for usage in self.source_usage {
+    if usage.ignored {
+      result.push(usage.source_index)
+    }
+  }
+  result
+}
+
+///|
+/// Return source indexes without embedded source content.
+pub fn SourceMapReport::sources_without_content(
+  self : SourceMapReport,
+) -> Array[Int] {
+  let result : Array[Int] = []
+  for usage in self.source_usage {
+    if !usage.has_content {
+      result.push(usage.source_index)
+    }
+  }
+  result
+}
+
+///|
+/// Return generated line numbers containing duplicate positions.
+pub fn SourceMapReport::lines_with_duplicates(
+  self : SourceMapReport,
+) -> Array[Int] {
+  let result : Array[Int] = []
+  for usage in self.generated_line_usage {
+    if usage.duplicate_positions > 0 {
+      result.push(usage.line)
+    }
+  }
+  result
+}
+
+///|
+/// Return generated lines containing at least one generated-only segment.
+pub fn SourceMapReport::generated_only_lines(
+  self : SourceMapReport,
+) -> Array[Int] {
+  let result : Array[Int] = []
+  for usage in self.generated_line_usage {
+    if usage.generated_only_segments > 0 {
+      result.push(usage.line)
+    }
+  }
+  result
+}
+
+///|
+/// Return whether a source is referenced by at least one segment.
+pub fn SourceUsage::is_referenced(self : SourceUsage) -> Bool {
+  self.mapped_segments > 0
+}
+
+///|
+/// Percentage of segments on this line that carry original positions.
+pub fn GeneratedLineUsage::mapping_coverage_percent(
+  self : GeneratedLineUsage,
+) -> Int {
+  if self.segments == 0 {
+    100
+  } else {
+    self.mapped_segments * 100 / self.segments
+  }
+}
+
+///|
+/// Percentage of mapped segments that preserve a symbol name.
+pub fn SourceMapReport::named_mapping_percent(self : SourceMapReport) -> Int {
+  if self.mapped_segments == 0 {
+    100
+  } else {
+    self.named_segments * 100 / self.mapped_segments
+  }
+}
+
+///|
+/// Percentage of source entries marked as ignored.
+pub fn SourceMapReport::ignored_source_percent(self : SourceMapReport) -> Int {
+  if self.sources == 0 {
+    0
+  } else {
+    self.ignored_sources * 100 / self.sources
+  }
+}
+
+///|
+/// Find the usage summary for a source index.
+pub fn SourceMapReport::source(
+  self : SourceMapReport,
+  source_index : Int,
+) -> SourceUsage? {
+  for usage in self.source_usage {
+    if usage.source_index == source_index {
+      return Some(usage)
+    }
+  }
+  None
+}
+
+///|
+/// Return whether the report contains a mapping or source-quality warning.
+pub fn SourceMapReport::has_quality_warnings(self : SourceMapReport) -> Bool {
+  self.generated_only_segments > 0 ||
+  self.duplicate_positions > 0 ||
+  self.unreferenced_sources > 0
+}
+
+///|
+/// Count source entries that are both referenced and backed by embedded text.
+pub fn SourceMapReport::usable_embedded_sources(self : SourceMapReport) -> Int {
+  let mut count = 0
+  for usage in self.source_usage {
+    if usage.is_referenced() && usage.has_content {
+      count += 1
+    }
+  }
+  count
 }

@@ -181,6 +181,19 @@ pub(all) enum DuplicateMappingPolicy {
   KeepAll
 } derive(Eq, @debug.Debug)
 
+pub(all) struct GeneratedLineUsage {
+  line : Int
+  segments : Int
+  mapped_segments : Int
+  generated_only_segments : Int
+  named_segments : Int
+  duplicate_positions : Int
+  first_column : Int
+  last_column : Int
+} derive(Eq, @debug.Debug)
+pub fn GeneratedLineUsage::mapping_coverage_percent(Self) -> Int
+pub fn GeneratedLineUsage::to_json(Self) -> Json
+
 pub(all) struct GeneratedSpan {
   mapping : Mapping
   end : Position?
@@ -371,10 +384,31 @@ pub(all) struct SourceMapReport {
   duplicate_positions : Int
   open_spans : Int
   source_usage : Array[SourceUsage]
+  generated_line_usage : Array[GeneratedLineUsage]
 } derive(Eq, @debug.Debug)
+pub fn SourceMapReport::busiest_generated_line(Self) -> GeneratedLineUsage?
+pub fn SourceMapReport::content_coverage_percent(Self) -> Int
 pub fn SourceMapReport::diagnostics(Self) -> Array[Diagnostic]
+pub fn SourceMapReport::empty_generated_lines(Self) -> Int
+pub fn SourceMapReport::generated_line(Self, Int) -> GeneratedLineUsage?
+pub fn SourceMapReport::generated_only_lines(Self) -> Array[Int]
+pub fn SourceMapReport::has_complete_mappings(Self) -> Bool
+pub fn SourceMapReport::has_complete_source_usage(Self) -> Bool
+pub fn SourceMapReport::has_complete_sources_content(Self) -> Bool
+pub fn SourceMapReport::has_quality_warnings(Self) -> Bool
+pub fn SourceMapReport::ignored_source_indices(Self) -> Array[Int]
+pub fn SourceMapReport::ignored_source_percent(Self) -> Int
+pub fn SourceMapReport::lines_with_duplicates(Self) -> Array[Int]
+pub fn SourceMapReport::mapping_coverage_percent(Self) -> Int
+pub fn SourceMapReport::named_mapping_percent(Self) -> Int
 pub fn SourceMapReport::render(Self) -> String
+pub fn SourceMapReport::source(Self, Int) -> SourceUsage?
+pub fn SourceMapReport::source_coverage_percent(Self) -> Int
+pub fn SourceMapReport::sources_without_content(Self) -> Array[Int]
+pub fn SourceMapReport::summary(Self) -> String
 pub fn SourceMapReport::to_json(Self) -> Json
+pub fn SourceMapReport::unreferenced_source_indices(Self) -> Array[Int]
+pub fn SourceMapReport::usable_embedded_sources(Self) -> Int
 
 pub(all) struct SourceMapStats {
   sources : Int
@@ -425,6 +459,7 @@ pub(all) struct SourceUsage {
   ignored : Bool
   has_content : Bool
 } derive(Eq, @debug.Debug)
+pub fn SourceUsage::is_referenced(Self) -> Bool
 pub fn SourceUsage::to_json(Self) -> Json
 
 pub(all) struct StackFrame {

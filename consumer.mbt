@@ -92,8 +92,9 @@ pub fn SourceMapConsumer::new(map : DecodedSourceMap) -> SourceMapConsumer {
 /// Parse and flatten a document directly into a consumer.
 pub fn SourceMapConsumer::from_document(
   document : SourceMapDocument,
+  map_url? : String,
 ) -> SourceMapConsumer raise SourceMapError {
-  SourceMapConsumer::new(decode_document(document))
+  SourceMapConsumer::new(decode_document(document, map_url?))
 }
 
 ///|

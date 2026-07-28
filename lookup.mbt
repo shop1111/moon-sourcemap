@@ -1,76 +1,4 @@
 ///|
-fn is_uri_like(value : String) -> Bool {
-  value.contains("://") ||
-  value.has_prefix("data:") ||
-  value.has_prefix("file:")
-}
-
-///|
-fn path_prefix(value : String) -> (String, String) {
-  if value.length() >= 2 && value.get_char(1) == Some(':') {
-    (value[0:2].to_owned(), value[2:].to_owned())
-  } else if value.has_prefix("/") {
-    ("/", value[1:].to_owned())
-  } else {
-    ("", value)
-  }
-}
-
-///|
-fn normalize_path(value : String) -> String {
-  let normalized = value.replace_all(old="\\", new="/")
-  let (prefix, body) = path_prefix(normalized)
-  let parts : Array[String] = []
-  for part in body.split("/") {
-    if part == "" || part == "." {
-      continue
-    }
-    if part == ".." {
-      if !parts.is_empty() && parts[parts.length() - 1] != ".." {
-        parts.pop() |> ignore
-      } else if prefix == "" {
-        parts.push(part.to_owned())
-      }
-    } else {
-      parts.push(part.to_owned())
-    }
-  }
-  let joined = parts.join("/")
-  if prefix == "/" {
-    "/" + joined
-  } else if prefix != "" {
-    prefix + "/" + joined
-  } else {
-    joined
-  }
-}
-
-///|
-fn join_source_root(root : String?, source : String?) -> String? {
-  match source {
-    None => None
-    Some(source) =>
-      if is_uri_like(source) || source.has_prefix("/") {
-        Some(source)
-      } else {
-        match root {
-          None => Some(normalize_path(source))
-          Some(root) =>
-            if root == "" {
-              Some(normalize_path(source))
-            } else if is_uri_like(root) {
-              let separator = if root.has_suffix("/") { "" } else { "/" }
-              Some(root + separator + source)
-            } else {
-              let separator = if root.has_suffix("/") { "" } else { "/" }
-              Some(normalize_path(root + separator + source))
-            }
-        }
-      }
-  }
-}
-
-///|
 fn ignored_source_indices(values : ArrayView[Int]) -> Map[Int, Unit] {
   let ignored : Map[Int, Unit] = {}
   for value in values {
@@ -99,6 +27,7 @@ fn source_content_at(contents : Array[String?]?, index : Int) -> String? {
 /// both standard and legacy ignore-list metadata parsed from the document.
 pub fn decode_regular_source_map(
   map : RegularSourceMap,
+  map_url? : String,
 ) -> DecodedSourceMap raise SourceMapError {
   let diagnostics = validate(Regular(map))
   if diagnostics_have_errors(diagnostics) {
@@ -110,7 +39,13 @@ pub fn decode_regular_source_map(
   for index, source in map.sources {
     sources.push(
       SourceEntry::new(
-        url?=join_source_root(map.source_root, source),
+        url?=resolve_source_url(
+          source,
+          options=SourceResolverOptions::new(
+            map_url?,
+            source_root?=map.source_root,
+          ),
+        ),
         content?=source_content_at(map.sources_content, index),
         ignored=ignored.contains(index),
       ),

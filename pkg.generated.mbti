@@ -8,6 +8,8 @@ import {
 // Values
 pub fn canonicalize(DecodedSourceMap, duplicate_policy? : DuplicateMappingPolicy, remove_unused_sources? : Bool) -> TransformResult
 
+pub fn classify_source_path(String?) -> SourcePathKind
+
 pub fn compose(DecodedSourceMap, DecodedSourceMap) -> DecodedSourceMap
 
 pub fn compose_json(StringView, StringView, indent? : Int) -> String raise SourceMapError
@@ -16,11 +18,11 @@ pub fn compose_with_options(DecodedSourceMap, DecodedSourceMap, options? : Compo
 
 pub fn concatenate(ArrayView[(Position, DecodedSourceMap)], file? : String) -> DecodedSourceMap raise SourceMapError
 
-pub fn decode_document(SourceMapDocument) -> DecodedSourceMap raise SourceMapError
+pub fn decode_document(SourceMapDocument, map_url? : String) -> DecodedSourceMap raise SourceMapError
 
 pub fn decode_mappings(String, sources_count~ : Int, names~ : ArrayView[String]) -> Array[Mapping] raise SourceMapError
 
-pub fn decode_regular_source_map(RegularSourceMap) -> DecodedSourceMap raise SourceMapError
+pub fn decode_regular_source_map(RegularSourceMap, map_url? : String) -> DecodedSourceMap raise SourceMapError
 
 pub fn decode_vlq(String) -> Int raise SourceMapError
 
@@ -48,17 +50,25 @@ pub fn mappings_are_sorted(ArrayView[Mapping]) -> Bool
 
 pub fn mappings_line_count(String) -> Int
 
+pub fn normalize_generated_file(String) -> String
+
 pub fn original_position_for(DecodedSourceMap, generated~ : Position, bias? : LookupBias) -> Mapping?
 
 pub fn parse_document(StringView) -> SourceMapDocument raise SourceMapError
 
 pub fn parse_stack_frame(String) -> StackFrame raise SourceMapError
 
+pub fn resolve_source_url(String?, options? : SourceResolverOptions) -> String?
+
 pub fn shift_generated(DecodedSourceMap, line_delta? : Int, first_line_column_delta? : Int) -> DecodedSourceMap raise SourceMapError
 
 pub fn slice_generated(DecodedSourceMap, start~ : Position, end~ : Position) -> DecodedSourceMap raise SourceMapError
 
 pub fn sort_mappings(ArrayView[Mapping]) -> Array[Mapping]
+
+pub fn source_context_for_frame(DecodedSourceMap, SymbolizedFrame, radius? : Int) -> SourceContext?
+
+pub fn source_context_for_mapping(DecodedSourceMap, Mapping, radius? : Int) -> SourceContext?
 
 pub fn source_for_mapping(DecodedSourceMap, Mapping) -> SourceEntry?
 
@@ -199,12 +209,30 @@ pub(all) struct RegularSourceMap {
 } derive(Eq, @debug.Debug)
 pub fn RegularSourceMap::new(file? : String, source_root? : String, sources? : Array[String?], sources_content? : Array[String?], names? : Array[String], mappings? : String, ignore_list? : Array[Int]) -> Self
 
+pub(all) struct SourceContext {
+  source : String?
+  focus_line : Int
+  focus_column : Int
+  start_line : Int
+  end_line : Int
+  lines : Array[String]
+} derive(Eq, @debug.Debug)
+pub fn SourceContext::render(Self) -> String
+pub fn SourceContext::to_json(Self) -> Json
+
 pub(all) struct SourceEntry {
   url : String?
   content : String?
   ignored : Bool
 } derive(Eq, @debug.Debug)
 pub fn SourceEntry::new(url? : String, content? : String, ignored? : Bool) -> Self
+
+pub(all) struct SourceLine {
+  number : Int
+  start : Int
+  end : Int
+  text : String
+} derive(Eq, @debug.Debug)
 
 pub(all) struct SourceMapBuilder {
   file : String?
@@ -228,7 +256,7 @@ pub(all) struct SourceMapConsumer {
   line_starts : Array[Int]
   reverse : Map[Int, Array[Int]]
 }
-pub fn SourceMapConsumer::from_document(SourceMapDocument) -> Self raise SourceMapError
+pub fn SourceMapConsumer::from_document(SourceMapDocument, map_url? : String) -> Self raise SourceMapError
 pub fn SourceMapConsumer::generated_positions_for(Self, source_index~ : Int, line? : Int, column? : Int) -> Array[Mapping]
 pub fn SourceMapConsumer::new(DecodedSourceMap) -> Self
 pub fn SourceMapConsumer::original_position_for(Self, generated~ : Position, bias? : LookupBias) -> Mapping?
@@ -255,6 +283,34 @@ pub(all) struct SourceMapStats {
   original_lines : Int
 }
 pub fn SourceMapStats::to_json(Self) -> Json
+
+pub(all) enum SourcePathKind {
+  Anonymous
+  DataUri
+  AbsoluteUri
+  ProtocolRelative
+  WindowsAbsolute
+  PosixAbsolute
+  Relative
+} derive(Eq, @debug.Debug)
+
+pub(all) struct SourceResolverOptions {
+  map_url : String?
+  source_root : String?
+  normalize_windows : Bool
+}
+pub fn SourceResolverOptions::new(map_url? : String, source_root? : String, normalize_windows? : Bool) -> Self
+
+pub(all) struct SourceTextIndex {
+  content : String
+  starts : Array[Int]
+  ends : Array[Int]
+}
+pub fn SourceTextIndex::contains(Self, line~ : Int, column~ : Int) -> Bool
+pub fn SourceTextIndex::context(Self, source? : String, line~ : Int, column~ : Int, radius? : Int) -> SourceContext?
+pub fn SourceTextIndex::line(Self, Int) -> SourceLine?
+pub fn SourceTextIndex::line_count(Self) -> Int
+pub fn SourceTextIndex::new(String) -> Self
 
 pub(all) struct StackFrame {
   file : String

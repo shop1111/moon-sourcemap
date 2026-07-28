@@ -40,9 +40,10 @@ fn append_decoded_section(
 ///|
 fn decode_document_inner(
   document : SourceMapDocument,
+  map_url : String?,
 ) -> DecodedSourceMap raise SourceMapError {
   match document {
-    Regular(map) => decode_regular_source_map(map)
+    Regular(map) => decode_regular_source_map(map, map_url?)
     Indexed(index) => {
       let diagnostics = validate(Indexed(index))
       if diagnostics_have_errors(diagnostics) {
@@ -50,7 +51,7 @@ fn decode_document_inner(
       }
       let result = DecodedSourceMap::new(file?=index.file)
       for section in index.sections {
-        let decoded = decode_document_inner(section.map)
+        let decoded = decode_document_inner(section.map, map_url)
         append_decoded_section(result, decoded, section.offset)
       }
       result.mappings.sort_by((left, right) => {
@@ -69,8 +70,9 @@ fn decode_document_inner(
 /// ignore-list flags cannot be conflated.
 pub fn decode_document(
   document : SourceMapDocument,
+  map_url? : String,
 ) -> DecodedSourceMap raise SourceMapError {
-  decode_document_inner(document)
+  decode_document_inner(document, map_url)
 }
 
 ///|

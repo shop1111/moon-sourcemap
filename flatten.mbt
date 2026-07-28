@@ -78,7 +78,7 @@ pub fn decode_document(
 ///|
 fn unique_names(mappings : ArrayView[Mapping]) -> Array[String] {
   let result : Array[String] = []
-  let seen : Map[String, Unit] = {}
+  let seen : Map[String, Unit] = Map([])
   for mapping in mappings {
     match mapping.name {
       Some(name) =>

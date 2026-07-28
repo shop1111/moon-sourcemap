@@ -51,7 +51,7 @@ fn build_line_starts(mappings : ArrayView[Mapping]) -> Array[Int] {
 
 ///|
 fn build_reverse_index(mappings : ArrayView[Mapping]) -> Map[Int, Array[Int]] {
-  let reverse : Map[Int, Array[Int]] = {}
+  let reverse : Map[Int, Array[Int]] = Map([])
   for index, mapping in mappings {
     match mapping.original {
       Some(original) =>

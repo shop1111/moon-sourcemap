@@ -69,7 +69,7 @@ fn deduplicate_mappings(
 
 ///|
 fn used_source_indices(mappings : ArrayView[Mapping]) -> Map[Int, Unit] {
-  let result : Map[Int, Unit] = {}
+  let result : Map[Int, Unit] = Map([])
   for mapping in mappings {
     match mapping.original {
       Some(original) => result[original.source_index] = ()
@@ -85,7 +85,7 @@ fn prune_sources(
   mappings : ArrayView[Mapping],
 ) -> (Array[SourceEntry], Array[Mapping]) {
   let used = used_source_indices(mappings)
-  let remap : Map[Int, Int] = {}
+  let remap : Map[Int, Int] = Map([])
   let retained : Array[SourceEntry] = []
   for index, source in sources {
     if used.contains(index) {

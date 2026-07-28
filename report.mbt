@@ -138,7 +138,7 @@ fn duplicate_generated_positions(mappings : ArrayView[Mapping]) -> Int {
 ///|
 fn source_usage_for(map : DecodedSourceMap, source_index : Int) -> SourceUsage {
   let source = map.sources[source_index]
-  let lines : Map[Int, Unit] = {}
+  let lines : Map[Int, Unit] = Map([])
   let mut mapped_segments = 0
   let mut named_segments = 0
   for mapping in map.mappings {

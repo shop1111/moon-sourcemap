@@ -1,6 +1,6 @@
 ///|
 fn ignored_source_indices(values : ArrayView[Int]) -> Map[Int, Unit] {
-  let ignored : Map[Int, Unit] = {}
+  let ignored : Map[Int, Unit] = Map([])
   for value in values {
     ignored[value] = ()
   }

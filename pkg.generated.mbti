@@ -210,6 +210,40 @@ pub fn Position::compare(Self, Self) -> Int
 pub fn Position::is_valid(Self) -> Bool
 pub fn Position::new(line~ : Int, column~ : Int) -> Self
 
+pub(all) struct RegisteredSourceMap {
+  name : String
+  generated_file : String
+  aliases : Array[String]
+  map : DecodedSourceMap
+}
+
+pub(all) enum RegistryMissReason {
+  MapNotFound
+  MappingNotFound
+  GeneratedOnly
+} derive(Eq, @debug.Debug)
+
+pub(all) struct RegistrySymbolizationReport {
+  frames : Array[RegistrySymbolizedFrame]
+  matched : Int
+  map_missing : Int
+  mapping_missing : Int
+  generated_only : Int
+} derive(Eq, @debug.Debug)
+pub fn RegistrySymbolizationReport::is_complete(Self) -> Bool
+pub fn RegistrySymbolizationReport::render(Self) -> String
+pub fn RegistrySymbolizationReport::to_json(Self) -> Json
+
+pub(all) struct RegistrySymbolizedFrame {
+  frame : StackFrame
+  map_name : String?
+  result : SymbolizedFrame?
+  context : SourceContext?
+  miss_reason : RegistryMissReason?
+} derive(Eq, @debug.Debug)
+pub fn RegistrySymbolizedFrame::render(Self) -> String
+pub fn RegistrySymbolizedFrame::to_json(Self) -> Json
+
 pub(all) struct RegularSourceMap {
   version : Int
   file : String?
@@ -284,6 +318,17 @@ pub(all) enum SourceMapDocument {
 } derive(Eq, @debug.Debug)
 pub fn SourceMapDocument::file(Self) -> String?
 pub fn SourceMapDocument::version(Self) -> Int
+
+pub(all) struct SourceMapRegistry {
+  entries : Array[RegisteredSourceMap]
+}
+pub fn SourceMapRegistry::find(Self, String) -> RegisteredSourceMap?
+pub fn SourceMapRegistry::is_empty(Self) -> Bool
+pub fn SourceMapRegistry::length(Self) -> Int
+pub fn SourceMapRegistry::new() -> Self
+pub fn SourceMapRegistry::register(Self, name~ : String, generated_file~ : String, map~ : DecodedSourceMap, aliases? : Array[String]) -> Unit raise SourceMapError
+pub fn SourceMapRegistry::symbolize(Self, String, bias? : LookupBias, context_radius? : Int) -> RegistrySymbolizationReport raise SourceMapError
+pub fn SourceMapRegistry::symbolize_frame(Self, StackFrame, bias? : LookupBias, context_radius? : Int) -> RegistrySymbolizedFrame
 
 pub(all) struct SourceMapReport {
   file : String?

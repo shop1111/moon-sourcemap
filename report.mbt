@@ -295,3 +295,66 @@ pub fn SourceMapReport::render(self : SourceMapReport) -> String {
   }
   output.to_string()
 }
+
+///|
+/// Produce reviewer-facing quality diagnostics from report metrics.
+pub fn SourceMapReport::diagnostics(
+  self : SourceMapReport,
+) -> Array[Diagnostic] {
+  let diagnostics : Array[Diagnostic] = []
+  if self.mappings == 0 {
+    diagnostics.push(
+      Diagnostic::warning(
+        code="empty_map",
+        message="source map contains no mapping segments",
+        path="$.mappings",
+      ),
+    )
+  }
+  if self.duplicate_positions > 0 {
+    diagnostics.push(
+      Diagnostic::warning(
+        code="duplicate_generated_positions",
+        message="source map contains \{self.duplicate_positions} duplicate generated positions",
+        path="$.mappings",
+      ),
+    )
+  }
+  if self.unreferenced_sources > 0 {
+    diagnostics.push(
+      Diagnostic::warning(
+        code="unreferenced_sources",
+        message="\{self.unreferenced_sources} source entries are never referenced",
+        path="$.sources",
+      ),
+    )
+  }
+  if self.sources > 0 && self.embedded_sources == 0 {
+    diagnostics.push(
+      Diagnostic::warning(
+        code="no_embedded_sources",
+        message="sourcesContent is unavailable for every source",
+        path="$.sourcesContent",
+      ),
+    )
+  }
+  if self.mappings > 0 && self.generated_only_segments * 2 > self.mappings {
+    diagnostics.push(
+      Diagnostic::warning(
+        code="mostly_generated_only",
+        message="more than half of mapping segments lack original positions",
+        path="$.mappings",
+      ),
+    )
+  }
+  diagnostics
+}
+
+///|
+/// Parse, flatten and analyze a source-map JSON document.
+pub fn analyze_source_map_json(
+  input : StringView,
+  map_url? : String,
+) -> SourceMapReport raise SourceMapError {
+  analyze_source_map(decode_document(parse_document(input), map_url?))
+}

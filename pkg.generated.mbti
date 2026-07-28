@@ -8,6 +8,8 @@ import {
 // Values
 pub fn analyze_source_map(DecodedSourceMap) -> SourceMapReport
 
+pub fn analyze_source_map_json(StringView, map_url? : String) -> SourceMapReport raise SourceMapError
+
 pub fn canonicalize(DecodedSourceMap, duplicate_policy? : DuplicateMappingPolicy, remove_unused_sources? : Bool) -> TransformResult
 
 pub fn classify_source_path(String?) -> SourcePathKind
@@ -82,6 +84,10 @@ pub fn symbolize(DecodedSourceMap, String, bias? : LookupBias) -> Array[Symboliz
 
 pub fn symbolize_frame(DecodedSourceMap, StackFrame, bias? : LookupBias) -> SymbolizedFrame
 
+pub fn symbolize_frame_with_context(DecodedSourceMap, StackFrame, bias? : LookupBias, context_radius? : Int) -> ContextualSymbolizedFrame
+
+pub fn symbolize_with_context(DecodedSourceMap, String, bias? : LookupBias, context_radius? : Int) -> ContextualSymbolizationReport raise SourceMapError
+
 pub fn symbolized_frames_to_json(ArrayView[SymbolizedFrame]) -> Json
 
 pub fn validate(SourceMapDocument) -> Array[Diagnostic]
@@ -121,6 +127,25 @@ pub(all) struct ComposeStats {
   generated_only : Int
   dropped : Int
 }
+
+pub(all) struct ContextualSymbolizationReport {
+  frames : Array[ContextualSymbolizedFrame]
+  matched : Int
+  unmatched : Int
+  with_context : Int
+} derive(Eq, @debug.Debug)
+pub fn ContextualSymbolizationReport::has_complete_context(Self) -> Bool
+pub fn ContextualSymbolizationReport::is_complete(Self) -> Bool
+pub fn ContextualSymbolizationReport::render(Self) -> String
+pub fn ContextualSymbolizationReport::to_json(Self) -> Json
+pub fn ContextualSymbolizationReport::unmatched_frames(Self) -> Array[StackFrame]
+
+pub(all) struct ContextualSymbolizedFrame {
+  result : SymbolizedFrame
+  context : SourceContext?
+} derive(Eq, @debug.Debug)
+pub fn ContextualSymbolizedFrame::render(Self) -> String
+pub fn ContextualSymbolizedFrame::to_json(Self) -> Json
 
 pub(all) struct DecodedSourceMap {
   file : String?
@@ -347,6 +372,7 @@ pub(all) struct SourceMapReport {
   open_spans : Int
   source_usage : Array[SourceUsage]
 } derive(Eq, @debug.Debug)
+pub fn SourceMapReport::diagnostics(Self) -> Array[Diagnostic]
 pub fn SourceMapReport::render(Self) -> String
 pub fn SourceMapReport::to_json(Self) -> Json
 

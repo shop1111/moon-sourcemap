@@ -60,6 +60,14 @@ fn source_windows_absolute(value : String) -> Bool {
 }
 
 ///|
+fn source_uri_is_hierarchical(value : String) -> Bool {
+  match value.split_once(":") {
+    Some((_, rest)) => rest.has_prefix("/")
+    None => false
+  }
+}
+
+///|
 /// Classify a raw source entry before resolution.
 pub fn classify_source_path(source : String?) -> SourcePathKind {
   match source {
@@ -116,7 +124,12 @@ fn source_prefix(value : String) -> (String, String, Bool) {
             )
           None => (value, "", true)
         }
-      None => ("", value, false)
+      None =>
+        match value.split_once(":") {
+          Some((scheme, rest)) if rest.has_prefix("/") =>
+            (scheme.to_owned() + ":", rest.to_owned(), true)
+          _ => ("", value, false)
+        }
     }
   }
 }
@@ -207,11 +220,14 @@ pub fn resolve_source_url(
     None => None
     Some(source) =>
       match classify_source_path(Some(source)) {
-        DataUri
-        | AbsoluteUri
-        | ProtocolRelative
-        | WindowsAbsolute
-        | PosixAbsolute =>
+        DataUri => Some(source)
+        AbsoluteUri =>
+          if source_uri_is_hierarchical(source) {
+            Some(normalize_source_path(source, options.normalize_windows))
+          } else {
+            Some(source)
+          }
+        ProtocolRelative | WindowsAbsolute | PosixAbsolute =>
           Some(normalize_source_path(source, options.normalize_windows))
         Anonymous => None
         Relative => {
@@ -247,5 +263,9 @@ pub fn resolve_source_url(
 ///|
 /// Normalize a generated-file key for registry matching.
 pub fn normalize_generated_file(value : String) -> String {
-  normalize_source_path(value, true)
+  match classify_source_path(Some(value)) {
+    DataUri => value
+    AbsoluteUri if !source_uri_is_hierarchical(value) => value
+    _ => normalize_source_path(value, true)
+  }
 }

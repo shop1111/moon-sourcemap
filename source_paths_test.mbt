@@ -25,6 +25,22 @@ test "source resolver preserves absolute values and normalizes dots" {
     Some("C:/work/main.ts"),
   )
   assert_true(resolve_source_url(Some("/a/./b/../c.ts")) == Some("/a/c.ts"))
+  assert_true(
+    resolve_source_url(Some("file:/work/src/../main.ts")) ==
+    Some("file:/work/main.ts"),
+  )
+}
+
+///|
+test "source resolver preserves data and opaque URIs byte for byte" {
+  let data = "data:text/plain,a/../b?literal=yes#fragment"
+  let base64 = "data:application/octet-stream;base64,YWJjL2RlZg=="
+  let opaque_uri = "webpack:src/../main.ts?query=yes#fragment"
+  assert_true(resolve_source_url(Some(data)) == Some(data))
+  assert_true(resolve_source_url(Some(base64)) == Some(base64))
+  assert_true(resolve_source_url(Some(opaque_uri)) == Some(opaque_uri))
+  assert_eq(normalize_generated_file(data), data)
+  assert_eq(normalize_generated_file(opaque_uri), opaque_uri)
 }
 
 ///|

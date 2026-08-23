@@ -93,6 +93,44 @@ test "generated lookup supports LUB and line boundaries" {
 }
 
 ///|
+test "GetOriginalPositions returns every duplicate at the global GLB" {
+  let map = lookup_fixture()
+  let exact = get_original_positions(
+    map,
+    generated=Position::new(line=0, column=5),
+  )
+  assert_eq(exact.length(), 2)
+  guard exact[0] is Some(first) else { fail("expected mapped duplicate") }
+  assert_eq(first.source_index, 0)
+  assert_eq(first.line, 2)
+  assert_eq(first.column, 8)
+  assert_true(exact[1] is None)
+  let between_lines = get_original_positions(
+    map,
+    generated=Position::new(line=1, column=99),
+  )
+  assert_eq(between_lines.length(), 2)
+  assert_true(between_lines[0] is Some(_))
+  assert_true(between_lines[1] is None)
+}
+
+///|
+test "GetOriginalPositions distinguishes no match from generated-only" {
+  let map = DecodedSourceMap::new(mappings=[
+    Mapping::generated_only(generated=Position::new(line=0, column=5)),
+  ])
+  assert_true(
+    get_original_positions(map, generated=Position::new(line=0, column=4)).is_empty(),
+  )
+  let generated_only = get_original_positions(
+    map,
+    generated=Position::new(line=0, column=5),
+  )
+  assert_eq(generated_only.length(), 1)
+  assert_true(generated_only[0] is None)
+}
+
+///|
 test "reverse lookup filters line and optional column" {
   let map = lookup_fixture()
   let on_line = generated_positions_for(map, source_index=0, line=2)

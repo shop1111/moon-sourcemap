@@ -5,7 +5,7 @@ fn usage() -> String {
     #|Usage:
     #|  moon-sourcemap validate <map> [--format text|json]
     #|  moon-sourcemap inspect <map> [--format text|json]
-    #|  moon-sourcemap lookup <map> --line N --column N [--bias glb|lub] [--strict] [--format text|json]
+    #|  moon-sourcemap lookup <map> --line N --column N [--bias glb|lub | --all] [--strict] [--format text|json]
     #|  moon-sourcemap flatten <map> -o <output> [--format text|json]
     #|  moon-sourcemap compose <outer> <inner> -o <output> [--format text|json]
     #|  moon-sourcemap symbolize <map> <frames> [--context N] [--strict] [--format text|json]
@@ -189,27 +189,112 @@ fn lookup_text(map : @lib.DecodedSourceMap, mapping : @lib.Mapping?) -> String {
 }
 
 ///|
+fn original_position_json(
+  map : @lib.DecodedSourceMap,
+  original : @lib.OriginalPosition?,
+) -> Json {
+  match original {
+    None => Json::null()
+    Some(original) => {
+      let source = if original.source_index >= 0 &&
+        original.source_index < map.sources.length() {
+        map.sources[original.source_index].url
+      } else {
+        None
+      }
+      Json::object({
+        "source_index": Json::number(original.source_index.to_double()),
+        "source": match source {
+          Some(source) => Json::string(source)
+          None => Json::null()
+        },
+        "line": Json::number(original.line.to_double()),
+        "column": Json::number(original.column.to_double()),
+      })
+    }
+  }
+}
+
+///|
+fn lookup_all_json(
+  map : @lib.DecodedSourceMap,
+  originals : ArrayView[@lib.OriginalPosition?],
+) -> Json {
+  Json::object({
+    "found": Json::boolean(!originals.is_empty()),
+    "originals": Json::array(
+      originals.map(original => original_position_json(map, original)),
+    ),
+  })
+}
+
+///|
+fn lookup_all_text(
+  map : @lib.DecodedSourceMap,
+  originals : ArrayView[@lib.OriginalPosition?],
+) -> String {
+  if originals.is_empty() {
+    return "<unmapped>"
+  }
+  originals
+  .map(original => {
+    match original {
+      None => "<generated-only>"
+      Some(original) => {
+        let source = if original.source_index >= 0 &&
+          original.source_index < map.sources.length() {
+          map.sources[original.source_index].url.unwrap_or("<anonymous>")
+        } else {
+          "<invalid-source>"
+        }
+        "\{source}:\{original.line}:\{original.column}"
+      }
+    }
+  })
+  .join("\n")
+}
+
+///|
 fn lookup_command(args : Array[String]) -> Int raise {
   if args.length() < 3 {
     fail("lookup requires a map path")
   }
+  let all = has_flag(args, "--all")
+  if all && has_flag(args, "--bias") {
+    fail("--all and --bias are mutually exclusive")
+  }
   let line = parse_coordinate(args, "--line")
   let column = parse_coordinate(args, "--column")
   let map = @lib.decode_document(read_document(args[2]))
-  let mapping = @lib.original_position_for(
-    map,
-    generated=@lib.Position::new(line~, column~),
-    bias=bias_of(args),
-  )
-  if format_of(args) == "json" {
-    println(lookup_json(map, mapping).stringify(indent=2))
+  let generated = @lib.Position::new(line~, column~)
+  if all {
+    let originals = @lib.get_original_positions(map, generated~)
+    if format_of(args) == "json" {
+      println(lookup_all_json(map, originals).stringify(indent=2))
+    } else {
+      println(lookup_all_text(map, originals))
+    }
+    if originals.is_empty() && has_flag(args, "--strict") {
+      3
+    } else {
+      0
+    }
   } else {
-    println(lookup_text(map, mapping))
-  }
-  if mapping is None && has_flag(args, "--strict") {
-    3
-  } else {
-    0
+    let mapping = @lib.original_position_for(
+      map,
+      generated~,
+      bias=bias_of(args),
+    )
+    if format_of(args) == "json" {
+      println(lookup_json(map, mapping).stringify(indent=2))
+    } else {
+      println(lookup_text(map, mapping))
+    }
+    if mapping is None && has_flag(args, "--strict") {
+      3
+    } else {
+      0
+    }
   }
 }
 

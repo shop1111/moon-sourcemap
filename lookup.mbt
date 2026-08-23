@@ -127,6 +127,30 @@ pub fn original_position_for(
 }
 
 ///|
+/// Return all original positions associated with the globally greatest
+/// generated position that is not later than `generated`.
+///
+/// This implements ECMA-426 `GetOriginalPositions`: duplicate mappings are
+/// retained in source-map order, generated-only mappings appear as `None`, and
+/// an empty array means no generated mapping precedes the query.
+pub fn get_original_positions(
+  map : DecodedSourceMap,
+  generated~ : Position,
+) -> Array[OriginalPosition?] {
+  if !generated.is_valid() || map.mappings.is_empty() {
+    return []
+  }
+  let selected_index = upper_bound(map.mappings, generated) - 1
+  if selected_index < 0 {
+    return []
+  }
+  let selected = map.mappings[selected_index].generated
+  let start = lower_bound(map.mappings, selected)
+  let end = upper_bound(map.mappings, selected)
+  map.mappings[start:end].map(mapping => mapping.original)
+}
+
+///|
 /// Find every generated segment that maps to an original source position.
 ///
 /// When `column` is omitted, all mappings on the requested original line are

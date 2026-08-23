@@ -195,6 +195,16 @@ pub fn SourceMapConsumer::original_position_for(
 }
 
 ///|
+/// Run ECMA-426 `GetOriginalPositions` against the consumer's sorted mapping
+/// copy.
+pub fn SourceMapConsumer::get_original_positions(
+  self : SourceMapConsumer,
+  generated~ : Position,
+) -> Array[OriginalPosition?] {
+  get_original_positions(self.map, generated~)
+}
+
+///|
 /// Query multiple positions without rebuilding indexes.
 pub fn SourceMapConsumer::original_positions_for(
   self : SourceMapConsumer,

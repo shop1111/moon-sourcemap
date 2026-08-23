@@ -31,6 +31,30 @@ test "consumer duplicate bias matches public lookup" {
 }
 
 ///|
+test "consumer GetOriginalPositions normalizes unsorted input" {
+  let consumer = SourceMapConsumer::new(
+    DecodedSourceMap::new(mappings=[
+      Mapping::mapped(
+        generated=Position::new(line=2, column=0),
+        original=OriginalPosition::new(source_index=0, line=20, column=0),
+      ),
+      Mapping::generated_only(generated=Position::new(line=0, column=5)),
+      Mapping::mapped(
+        generated=Position::new(line=0, column=5),
+        original=OriginalPosition::new(source_index=0, line=5, column=1),
+      ),
+    ]),
+  )
+  let result = consumer.get_original_positions(
+    generated=Position::new(line=1, column=0),
+  )
+  assert_eq(result.length(), 2)
+  assert_true(result[0] is None)
+  guard result[1] is Some(original) else { fail("expected original position") }
+  assert_eq(original.line, 5)
+}
+
+///|
 test "consumer URL lookup preserves duplicate sources" {
   let map = DecodedSourceMap::new(sources=[
     SourceEntry::new(url="same.ts"),

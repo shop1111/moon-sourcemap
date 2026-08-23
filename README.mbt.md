@@ -86,7 +86,7 @@ test "build a map" {
 | JSON 双向转换 | `parse_document`, `encode_document` |
 | mappings 编解码 | `decode_mappings`, `encode_mappings` |
 | 严格校验 | `validate`, `validate_json`, `Diagnostic` |
-| 位置查询 | `original_position_for`, `generated_positions_for` |
+| 位置查询 | `original_position_for`, `get_original_positions`, `generated_positions_for` |
 | 批量索引 | `SourceMapConsumer` |
 | Index Map | `decode_document`, `flatten` |
 | 生成 | `SourceMapBuilder`, `encode_decoded` |
@@ -99,7 +99,7 @@ test "build a map" {
 ```text
 moon-sourcemap validate <map> [--format text|json]
 moon-sourcemap inspect <map> [--format text|json]
-moon-sourcemap lookup <map> --line N --column N [--bias glb|lub] [--strict]
+moon-sourcemap lookup <map> --line N --column N [--bias glb|lub | --all] [--strict]
 moon-sourcemap flatten <map> -o <output>
 moon-sourcemap compose <outer> <inner> -o <output>
 moon-sourcemap symbolize <map> <frames> [--context N] [--strict] [--format text|json]
@@ -136,7 +136,7 @@ v0.1 不实现仍在演进的 Scopes、Range Mappings、Debug ID 与 Env
 
 ### 当前里程碑
 
-当前 0.1.0 已完成核心库、六命令 CLI、源码上下文、多文件 map registry、
+当前 0.1.1 已完成核心库、六命令 CLI、源码上下文、多文件 map registry、
 结构质量报告、TC39 选例、四后端 CI、示例和发布元数据。生产 MoonBit
 有效代码由 CI 强制保持在 4000–4499 行，不把测试、空行、纯注释、示例
 或第三方数据计入。
@@ -146,7 +146,9 @@ v0.1 不实现仍在演进的 Scopes、Range Mappings、Debug ID 与 Env
 MoonSourceMap is an original, pure-MoonBit implementation of ECMA-426. It
 parses and emits regular and index source maps, validates mapping state,
 supports GLB/LUB and reverse queries, composes build stages, and symbolizes
-generated stack frames.
+generated stack frames. ECMA-426 `GetOriginalPositions` is available through
+`get_original_positions` and `lookup --all`, including generated-only entries
+at duplicate generated positions.
 
 Run the complete verification matrix:
 
@@ -161,7 +163,8 @@ moon package
 ```
 
 The CLI uses stable JSON output and deterministic exit codes, so `validate`,
-`lookup`, `flatten`, `compose`, and `symbolize` can be used directly in CI.
+`inspect`, `lookup`, `flatten`, `compose`, and `symbolize` can be used directly
+in CI.
 
 ## License
 

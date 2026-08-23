@@ -39,11 +39,21 @@ jobs:
           moon run --target native cmd/main -- validate examples/demo.min.js.map
           moon run --target native cmd/main -- inspect examples/demo.min.js.map --format json
           moon run --target native cmd/main -- lookup examples/demo.min.js.map --line 0 --column 4 --format json
+          moon run --target native cmd/main -- lookup examples/duplicate.map --line 0 --column 0 --all
+          moon run --target native cmd/main -- lookup examples/duplicate.map --line 0 --column 0 --all --format json
           moon run --target native cmd/main -- symbolize examples/demo.min.js.map examples/frames.txt --format json
           moon run --target native cmd/main -- symbolize examples/demo.min.js.map examples/frames.txt --context 1
           moon run --target native cmd/main -- flatten examples/demo.min.js.map -o _build/ci/flattened.map
           moon run --target native cmd/main -- compose examples/outer.map examples/inner.map -o _build/ci/composed.map
           moon run --target native cmd/main -- validate _build/ci/composed.map
+          set +e
+          moon run --target native cmd/main -- lookup examples/empty.map --line 0 --column 0 --all --strict
+          strict_exit="$?"
+          moon run --target native cmd/main -- lookup examples/duplicate.map --line 0 --column 0 --all --bias glb
+          conflict_exit="$?"
+          set -e
+          test "$strict_exit" -eq 3
+          test "$conflict_exit" -eq 1
       - name: Effective production line count
         shell: bash
         run: |
@@ -62,4 +72,4 @@ jobs:
       - name: Package
         run: |
           moon package
-          test -s _build/publish/shop1111-moon_sourcemap-0.1.0.zip
+          test -s _build/publish/shop1111-moon_sourcemap-0.1.1.zip

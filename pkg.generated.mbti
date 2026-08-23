@@ -50,6 +50,8 @@ pub fn flatten(SourceMapDocument) -> RegularSourceMap raise SourceMapError
 
 pub fn generated_positions_for(DecodedSourceMap, source_index~ : Int, line~ : Int, column? : Int) -> Array[Mapping]
 
+pub fn get_original_positions(DecodedSourceMap, generated~ : Position) -> Array[OriginalPosition?]
+
 pub fn mapping_spans(DecodedSourceMap) -> Array[GeneratedSpan]
 
 pub fn mapping_spans_for_line(DecodedSourceMap, Int) -> Array[GeneratedSpan]
@@ -343,6 +345,7 @@ pub(all) struct SourceMapConsumer {
 }
 pub fn SourceMapConsumer::from_document(SourceMapDocument, map_url? : String) -> Self raise SourceMapError
 pub fn SourceMapConsumer::generated_positions_for(Self, source_index~ : Int, line? : Int, column? : Int) -> Array[Mapping]
+pub fn SourceMapConsumer::get_original_positions(Self, generated~ : Position) -> Array[OriginalPosition?]
 pub fn SourceMapConsumer::new(DecodedSourceMap) -> Self
 pub fn SourceMapConsumer::original_position_for(Self, generated~ : Position, bias? : LookupBias) -> Mapping?
 pub fn SourceMapConsumer::original_positions_for(Self, ArrayView[Position], bias? : LookupBias) -> Array[Mapping?]
@@ -505,4 +508,3 @@ pub(all) struct VlqValue {
 // Type aliases
 
 // Traits
-

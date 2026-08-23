@@ -1,7 +1,7 @@
 ///|
 fn usage() -> String {
   (
-    #|MoonSourceMap 0.1.0
+    #|MoonSourceMap 0.1.1
     #|Usage:
     #|  moon-sourcemap validate <map> [--format text|json]
     #|  moon-sourcemap inspect <map> [--format text|json]

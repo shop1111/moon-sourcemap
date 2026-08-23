@@ -8,6 +8,13 @@ test "Base64-VLQ encodes canonical small values" {
 }
 
 ///|
+test "Base64-VLQ uses the ECMA-426 minimum i32 representation" {
+  assert_eq(@moon_sourcemap.encode_vlq(-2147483648), "B")
+  assert_eq(@moon_sourcemap.decode_vlq("B"), -2147483648)
+  assert_eq(@moon_sourcemap.encode_vlq(2147483647), "+/////D")
+}
+
+///|
 test "Base64-VLQ round trips representative values" {
   for
     value in [
@@ -47,5 +54,15 @@ test "Base64-VLQ rejects unterminated continuation" {
     _ => fail("unexpected error")
   } noraise {
     _ => fail("expected invalid VLQ")
+  }
+}
+
+///|
+test "Base64-VLQ rejects unsigned values outside 32 bits" {
+  try @moon_sourcemap.decode_vlq("ggggggE") catch {
+    InvalidVlq(..) => ()
+    _ => fail("unexpected error")
+  } noraise {
+    _ => fail("expected overflowing VLQ")
   }
 }

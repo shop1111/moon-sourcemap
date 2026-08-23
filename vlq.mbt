@@ -9,6 +9,9 @@ pub(all) struct VlqValue {
 const MAX_VLQ_INT : Int = 2147483647
 
 ///|
+const MAX_VLQ_UNSIGNED : Int64 = 4294967295L
+
+///|
 fn base64_digit_to_char(value : Int) -> Char {
   let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
   match alphabet.get_char(value) {
@@ -34,8 +37,17 @@ fn base64_char_to_digit(ch : Char) -> Int? {
 /// ECMA-426.
 ///
 pub fn encode_vlq(value : Int) -> String {
-  let wide = value.to_int64()
-  let signed : Int64 = if wide < 0L { -wide * 2L + 1L } else { wide * 2L }
+  let signed : Int64 = if value == -2147483648 {
+    // ECMA-426 reserves the negative-zero bit pattern for the minimum i32.
+    1L
+  } else {
+    let wide = value.to_int64()
+    if wide < 0L {
+      -wide * 2L + 1L
+    } else {
+      wide * 2L
+    }
+  }
   let output = StringBuilder()
   let mut remaining = signed
   for ;; {
@@ -81,11 +93,11 @@ pub fn decode_vlq_at(
     }
     let continuation = digit >= 32
     let payload = digit % 32
-    if payload > 0 && multiplier > 4294967297L / payload.to_int64() {
+    if payload > 0 && multiplier > MAX_VLQ_UNSIGNED / payload.to_int64() {
       raise InvalidVlq(offset=cursor, message="Base64-VLQ value overflows Int")
     }
     let contribution = payload.to_int64() * multiplier
-    if accumulated > 4294967297L - contribution {
+    if accumulated > MAX_VLQ_UNSIGNED - contribution {
       raise InvalidVlq(offset=cursor, message="Base64-VLQ value overflows Int")
     }
     accumulated = accumulated + contribution
@@ -100,7 +112,7 @@ pub fn decode_vlq_at(
     if cursor >= input.length() {
       raise InvalidVlq(offset=cursor, message="unterminated Base64-VLQ value")
     }
-    if multiplier > 4294967297L / 32L {
+    if multiplier > MAX_VLQ_UNSIGNED / 32L {
       raise InvalidVlq(
         offset=cursor,
         message="Base64-VLQ multiplier overflows Int",
@@ -113,7 +125,13 @@ pub fn decode_vlq_at(
   if !negative && magnitude > MAX_VLQ_INT.to_int64() {
     raise InvalidVlq(offset~, message="positive Base64-VLQ value overflows Int")
   }
-  let value = if negative { (-magnitude).to_int() } else { magnitude.to_int() }
+  let value = if negative && magnitude == 0L {
+    -2147483648
+  } else if negative {
+    (-magnitude).to_int()
+  } else {
+    magnitude.to_int()
+  }
   { value, next_offset: cursor }
 }
 

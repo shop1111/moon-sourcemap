@@ -1,19 +1,21 @@
 ///|
 fn expect_tc39_valid(json : StringView) -> Unit raise {
-  let document = parse_document(json)
-  let diagnostics = validate(document)
-  if diagnostics_have_errors(diagnostics) {
+  let document = @moon_sourcemap.parse_document(json)
+  let diagnostics = @moon_sourcemap.validate(document)
+  if @moon_sourcemap.diagnostics_have_errors(diagnostics) {
     fail("expected selected TC39 fixture to be valid")
   }
 }
 
 ///|
 fn expect_tc39_invalid(json : StringView) -> Unit raise {
-  try parse_document(json) catch {
+  try @moon_sourcemap.parse_document(json) catch {
     _ => return
   } noraise {
     document =>
-      if !diagnostics_have_errors(validate(document)) {
+      if !@moon_sourcemap.diagnostics_have_errors(
+          @moon_sourcemap.validate(document),
+        ) {
         fail("expected selected TC39 fixture to be invalid")
       }
   }

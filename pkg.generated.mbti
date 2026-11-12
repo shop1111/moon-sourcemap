@@ -3,6 +3,7 @@ package "shop1111/moon_sourcemap"
 
 import {
   "moonbitlang/core/debug",
+  "moonbitlang/core/json",
 }
 
 // Values
@@ -16,7 +17,7 @@ pub fn classify_source_path(String?) -> SourcePathKind
 
 pub fn compose(DecodedSourceMap, DecodedSourceMap) -> DecodedSourceMap
 
-pub fn compose_json(StringView, StringView, indent? : Int) -> String raise SourceMapError
+pub fn compose_json(StringView, StringView, indent? : Int32) -> String raise SourceMapError
 
 pub fn compose_with_options(DecodedSourceMap, DecodedSourceMap, options? : ComposeOptions) -> ComposeResult
 
@@ -24,41 +25,41 @@ pub fn concatenate(ArrayView[(Position, DecodedSourceMap)], file? : String) -> D
 
 pub fn decode_document(SourceMapDocument, map_url? : String) -> DecodedSourceMap raise SourceMapError
 
-pub fn decode_mappings(String, sources_count~ : Int, names~ : ArrayView[String]) -> Array[Mapping] raise SourceMapError
+pub fn decode_mappings(String, sources_count~ : Int32, names~ : ArrayView[String]) -> Array[Mapping] raise SourceMapError
 
 pub fn decode_regular_source_map(RegularSourceMap, map_url? : String) -> DecodedSourceMap raise SourceMapError
 
-pub fn decode_vlq(String) -> Int raise SourceMapError
+pub fn decode_vlq(String) -> Int32 raise SourceMapError
 
-pub fn decode_vlq_at(String, offset~ : Int) -> VlqValue raise SourceMapError
+pub fn decode_vlq_at(String, offset~ : Int32) -> VlqValue raise SourceMapError
 
 pub fn diagnostics_have_errors(ArrayView[Diagnostic]) -> Bool
 
-pub fn diagnostics_to_json(ArrayView[Diagnostic]) -> Json
+pub fn diagnostics_to_json(ArrayView[Diagnostic]) -> @json.Json
 
-pub fn document_to_json(SourceMapDocument) -> Json
+pub fn document_to_json(SourceMapDocument) -> @json.Json
 
 pub fn encode_decoded(DecodedSourceMap) -> RegularSourceMap raise SourceMapError
 
-pub fn encode_document(SourceMapDocument, indent? : Int) -> String
+pub fn encode_document(SourceMapDocument, indent? : Int32) -> String
 
 pub fn encode_mappings(ArrayView[Mapping], names~ : ArrayView[String]) -> String raise SourceMapError
 
-pub fn encode_vlq(Int) -> String
+pub fn encode_vlq(Int32) -> String
 
 pub fn flatten(SourceMapDocument) -> RegularSourceMap raise SourceMapError
 
-pub fn generated_positions_for(DecodedSourceMap, source_index~ : Int, line~ : Int, column? : Int) -> Array[Mapping]
+pub fn generated_positions_for(DecodedSourceMap, source_index~ : Int32, line~ : Int32, column? : Int32) -> Array[Mapping]
 
 pub fn get_original_positions(DecodedSourceMap, generated~ : Position) -> Array[OriginalPosition?]
 
 pub fn mapping_spans(DecodedSourceMap) -> Array[GeneratedSpan]
 
-pub fn mapping_spans_for_line(DecodedSourceMap, Int) -> Array[GeneratedSpan]
+pub fn mapping_spans_for_line(DecodedSourceMap, Int32) -> Array[GeneratedSpan]
 
 pub fn mappings_are_sorted(ArrayView[Mapping]) -> Bool
 
-pub fn mappings_line_count(String) -> Int
+pub fn mappings_line_count(String) -> Int32
 
 pub fn normalize_generated_file(String) -> String
 
@@ -70,15 +71,15 @@ pub fn parse_stack_frame(String) -> StackFrame raise SourceMapError
 
 pub fn resolve_source_url(String?, options? : SourceResolverOptions) -> String?
 
-pub fn shift_generated(DecodedSourceMap, line_delta? : Int, first_line_column_delta? : Int) -> DecodedSourceMap raise SourceMapError
+pub fn shift_generated(DecodedSourceMap, line_delta? : Int32, first_line_column_delta? : Int32) -> DecodedSourceMap raise SourceMapError
 
 pub fn slice_generated(DecodedSourceMap, start~ : Position, end~ : Position) -> DecodedSourceMap raise SourceMapError
 
 pub fn sort_mappings(ArrayView[Mapping]) -> Array[Mapping]
 
-pub fn source_context_for_frame(DecodedSourceMap, SymbolizedFrame, radius? : Int) -> SourceContext?
+pub fn source_context_for_frame(DecodedSourceMap, SymbolizedFrame, radius? : Int32) -> SourceContext?
 
-pub fn source_context_for_mapping(DecodedSourceMap, Mapping, radius? : Int) -> SourceContext?
+pub fn source_context_for_mapping(DecodedSourceMap, Mapping, radius? : Int32) -> SourceContext?
 
 pub fn source_for_mapping(DecodedSourceMap, Mapping) -> SourceEntry?
 
@@ -86,29 +87,36 @@ pub fn symbolize(DecodedSourceMap, String, bias? : LookupBias) -> Array[Symboliz
 
 pub fn symbolize_frame(DecodedSourceMap, StackFrame, bias? : LookupBias) -> SymbolizedFrame
 
-pub fn symbolize_frame_with_context(DecodedSourceMap, StackFrame, bias? : LookupBias, context_radius? : Int) -> ContextualSymbolizedFrame
+pub fn symbolize_frame_with_context(DecodedSourceMap, StackFrame, bias? : LookupBias, context_radius? : Int32) -> ContextualSymbolizedFrame
 
-pub fn symbolize_with_context(DecodedSourceMap, String, bias? : LookupBias, context_radius? : Int) -> ContextualSymbolizationReport raise SourceMapError
+pub fn symbolize_with_context(DecodedSourceMap, String, bias? : LookupBias, context_radius? : Int32) -> ContextualSymbolizationReport raise SourceMapError
 
-pub fn symbolized_frames_to_json(ArrayView[SymbolizedFrame]) -> Json
+pub fn symbolized_frames_to_json(ArrayView[SymbolizedFrame]) -> @json.Json
 
 pub fn validate(SourceMapDocument) -> Array[Diagnostic]
 
 pub fn validate_json(StringView) -> Array[Diagnostic]
 
 // Errors
+#derive(Eq, @debug.Debug)
 pub(all) suberror SourceMapError {
   InvalidJson(message~ : String)
   InvalidField(path~ : String, message~ : String)
-  InvalidVlq(offset~ : Int, message~ : String)
-  InvalidMappings(line~ : Int, segment~ : Int, offset~ : Int, message~ : String)
+  InvalidVlq(offset~ : Int32, message~ : String)
+  InvalidMappings(line~ : Int32, segment~ : Int32, offset~ : Int32, message~ : String)
   InvalidDocument(message~ : String)
   Io(message~ : String)
-} derive(Eq, @debug.Debug)
+}
 pub fn SourceMapError::code(Self) -> String
+#deprecated
+pub fn SourceMapError::equal(Self, Self) -> Bool
 pub fn SourceMapError::message(Self) -> String
+#deprecated
+pub fn SourceMapError::not_equal(Self, Self) -> Bool
 pub fn SourceMapError::path(Self) -> String
 pub fn SourceMapError::to_diagnostic(Self) -> Diagnostic
+#deprecated
+pub fn SourceMapError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub(all) struct ComposeOptions {
@@ -124,131 +132,236 @@ pub(all) struct ComposeResult {
 }
 
 pub(all) struct ComposeStats {
-  outer_mappings : Int
-  composed_mappings : Int
-  generated_only : Int
-  dropped : Int
+  outer_mappings : Int32
+  composed_mappings : Int32
+  generated_only : Int32
+  dropped : Int32
 }
 
+#derive(Eq, @debug.Debug)
 pub(all) struct ContextualSymbolizationReport {
   frames : Array[ContextualSymbolizedFrame]
-  matched : Int
-  unmatched : Int
-  with_context : Int
-} derive(Eq, @debug.Debug)
+  matched : Int32
+  unmatched : Int32
+  with_context : Int32
+}
+#deprecated
+pub fn ContextualSymbolizationReport::equal(Self, Self) -> Bool
 pub fn ContextualSymbolizationReport::has_complete_context(Self) -> Bool
 pub fn ContextualSymbolizationReport::is_complete(Self) -> Bool
+#deprecated
+pub fn ContextualSymbolizationReport::not_equal(Self, Self) -> Bool
 pub fn ContextualSymbolizationReport::render(Self) -> String
-pub fn ContextualSymbolizationReport::to_json(Self) -> Json
+pub fn ContextualSymbolizationReport::to_json(Self) -> @json.Json
+#deprecated
+pub fn ContextualSymbolizationReport::to_repr(Self) -> @debug.Repr
 pub fn ContextualSymbolizationReport::unmatched_frames(Self) -> Array[StackFrame]
 
+#derive(Eq, @debug.Debug)
 pub(all) struct ContextualSymbolizedFrame {
   result : SymbolizedFrame
   context : SourceContext?
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn ContextualSymbolizedFrame::equal(Self, Self) -> Bool
+#deprecated
+pub fn ContextualSymbolizedFrame::not_equal(Self, Self) -> Bool
 pub fn ContextualSymbolizedFrame::render(Self) -> String
-pub fn ContextualSymbolizedFrame::to_json(Self) -> Json
+pub fn ContextualSymbolizedFrame::to_json(Self) -> @json.Json
+#deprecated
+pub fn ContextualSymbolizedFrame::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct DecodedSourceMap {
   file : String?
   sources : Array[SourceEntry]
   mappings : Array[Mapping]
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn DecodedSourceMap::equal(Self, Self) -> Bool
 pub fn DecodedSourceMap::new(file? : String, sources? : Array[SourceEntry], mappings? : Array[Mapping]) -> Self
+#deprecated
+pub fn DecodedSourceMap::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn DecodedSourceMap::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Diagnostic {
   severity : DiagnosticSeverity
   code : String
   message : String
   path : String
-  mapping_line : Int?
-  segment : Int?
-  offset : Int?
-} derive(Eq, @debug.Debug)
-pub fn Diagnostic::error(code~ : String, message~ : String, path? : String, mapping_line? : Int, segment? : Int, offset? : Int) -> Self
+  mapping_line : Int32?
+  segment : Int32?
+  offset : Int32?
+}
+#deprecated
+pub fn Diagnostic::equal(Self, Self) -> Bool
+pub fn Diagnostic::error(code~ : String, message~ : String, path? : String, mapping_line? : Int32, segment? : Int32, offset? : Int32) -> Self
 pub fn Diagnostic::is_error(Self) -> Bool
+#deprecated
+pub fn Diagnostic::not_equal(Self, Self) -> Bool
 pub fn Diagnostic::render(Self) -> String
-pub fn Diagnostic::to_json(Self) -> Json
-pub fn Diagnostic::warning(code~ : String, message~ : String, path? : String, mapping_line? : Int, segment? : Int, offset? : Int) -> Self
+pub fn Diagnostic::to_json(Self) -> @json.Json
+#deprecated
+pub fn Diagnostic::to_repr(Self) -> @debug.Repr
+pub fn Diagnostic::warning(code~ : String, message~ : String, path? : String, mapping_line? : Int32, segment? : Int32, offset? : Int32) -> Self
 
+#derive(Eq, @debug.Debug)
 pub(all) enum DiagnosticSeverity {
   Error
   Warning
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn DiagnosticSeverity::equal(Self, Self) -> Bool
 pub fn DiagnosticSeverity::label(Self) -> String
+#deprecated
+pub fn DiagnosticSeverity::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn DiagnosticSeverity::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum DuplicateMappingPolicy {
   KeepFirst
   KeepLast
   KeepAll
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn DuplicateMappingPolicy::equal(Self, Self) -> Bool
+#deprecated
+pub fn DuplicateMappingPolicy::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn DuplicateMappingPolicy::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct GeneratedLineUsage {
-  line : Int
-  segments : Int
-  mapped_segments : Int
-  generated_only_segments : Int
-  named_segments : Int
-  duplicate_positions : Int
-  first_column : Int
-  last_column : Int
-} derive(Eq, @debug.Debug)
-pub fn GeneratedLineUsage::mapping_coverage_percent(Self) -> Int
-pub fn GeneratedLineUsage::to_json(Self) -> Json
+  line : Int32
+  segments : Int32
+  mapped_segments : Int32
+  generated_only_segments : Int32
+  named_segments : Int32
+  duplicate_positions : Int32
+  first_column : Int32
+  last_column : Int32
+}
+#deprecated
+pub fn GeneratedLineUsage::equal(Self, Self) -> Bool
+pub fn GeneratedLineUsage::mapping_coverage_percent(Self) -> Int32
+#deprecated
+pub fn GeneratedLineUsage::not_equal(Self, Self) -> Bool
+pub fn GeneratedLineUsage::to_json(Self) -> @json.Json
+#deprecated
+pub fn GeneratedLineUsage::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct GeneratedSpan {
   mapping : Mapping
   end : Position?
-} derive(Eq, @debug.Debug)
-pub fn GeneratedSpan::column_width(Self) -> Int?
+}
+pub fn GeneratedSpan::column_width(Self) -> Int32?
 pub fn GeneratedSpan::contains(Self, Position) -> Bool
+#deprecated
+pub fn GeneratedSpan::equal(Self, Self) -> Bool
+#deprecated
+pub fn GeneratedSpan::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn GeneratedSpan::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct IndexSection {
   offset : Position
   map : SourceMapDocument
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn IndexSection::equal(Self, Self) -> Bool
 pub fn IndexSection::new(offset~ : Position, map~ : SourceMapDocument) -> Self
+#deprecated
+pub fn IndexSection::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn IndexSection::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct IndexSourceMap {
-  version : Int
+  version : Int32
   file : String?
   sections : Array[IndexSection]
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn IndexSourceMap::equal(Self, Self) -> Bool
 pub fn IndexSourceMap::new(file? : String, sections? : Array[IndexSection]) -> Self
+#deprecated
+pub fn IndexSourceMap::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn IndexSourceMap::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum LookupBias {
   GreatestLowerBound
   LeastUpperBound
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn LookupBias::equal(Self, Self) -> Bool
+#deprecated
+pub fn LookupBias::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn LookupBias::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Mapping {
   generated : Position
   original : OriginalPosition?
   name : String?
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn Mapping::equal(Self, Self) -> Bool
 pub fn Mapping::generated_only(generated~ : Position) -> Self
 pub fn Mapping::mapped(generated~ : Position, original~ : OriginalPosition, name? : String) -> Self
+#deprecated
+pub fn Mapping::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Mapping::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum MissingMappingPolicy {
   KeepGenerated
   Drop
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn MissingMappingPolicy::equal(Self, Self) -> Bool
+#deprecated
+pub fn MissingMappingPolicy::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn MissingMappingPolicy::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct OriginalPosition {
-  source_index : Int
-  line : Int
-  column : Int
-} derive(Eq, @debug.Debug)
+  source_index : Int32
+  line : Int32
+  column : Int32
+}
+#deprecated
+pub fn OriginalPosition::equal(Self, Self) -> Bool
 pub fn OriginalPosition::is_valid(Self) -> Bool
-pub fn OriginalPosition::new(source_index~ : Int, line~ : Int, column~ : Int) -> Self
+pub fn OriginalPosition::new(source_index~ : Int32, line~ : Int32, column~ : Int32) -> Self
+#deprecated
+pub fn OriginalPosition::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn OriginalPosition::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Position {
-  line : Int
-  column : Int
-} derive(Eq, @debug.Debug)
-pub fn Position::compare(Self, Self) -> Int
+  line : Int32
+  column : Int32
+}
+pub fn Position::compare(Self, Self) -> Int32
+#deprecated
+pub fn Position::equal(Self, Self) -> Bool
 pub fn Position::is_valid(Self) -> Bool
-pub fn Position::new(line~ : Int, column~ : Int) -> Self
+pub fn Position::new(line~ : Int32, column~ : Int32) -> Self
+#deprecated
+pub fn Position::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn Position::to_repr(Self) -> @debug.Repr
 
 pub(all) struct RegisteredSourceMap {
   name : String
@@ -257,69 +370,118 @@ pub(all) struct RegisteredSourceMap {
   map : DecodedSourceMap
 }
 
+#derive(Eq, @debug.Debug)
 pub(all) enum RegistryMissReason {
   MapNotFound
   MappingNotFound
   GeneratedOnly
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn RegistryMissReason::equal(Self, Self) -> Bool
+#deprecated
+pub fn RegistryMissReason::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn RegistryMissReason::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct RegistrySymbolizationReport {
   frames : Array[RegistrySymbolizedFrame]
-  matched : Int
-  map_missing : Int
-  mapping_missing : Int
-  generated_only : Int
-} derive(Eq, @debug.Debug)
+  matched : Int32
+  map_missing : Int32
+  mapping_missing : Int32
+  generated_only : Int32
+}
+#deprecated
+pub fn RegistrySymbolizationReport::equal(Self, Self) -> Bool
 pub fn RegistrySymbolizationReport::is_complete(Self) -> Bool
+#deprecated
+pub fn RegistrySymbolizationReport::not_equal(Self, Self) -> Bool
 pub fn RegistrySymbolizationReport::render(Self) -> String
-pub fn RegistrySymbolizationReport::to_json(Self) -> Json
+pub fn RegistrySymbolizationReport::to_json(Self) -> @json.Json
+#deprecated
+pub fn RegistrySymbolizationReport::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct RegistrySymbolizedFrame {
   frame : StackFrame
   map_name : String?
   result : SymbolizedFrame?
   context : SourceContext?
   miss_reason : RegistryMissReason?
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn RegistrySymbolizedFrame::equal(Self, Self) -> Bool
+#deprecated
+pub fn RegistrySymbolizedFrame::not_equal(Self, Self) -> Bool
 pub fn RegistrySymbolizedFrame::render(Self) -> String
-pub fn RegistrySymbolizedFrame::to_json(Self) -> Json
+pub fn RegistrySymbolizedFrame::to_json(Self) -> @json.Json
+#deprecated
+pub fn RegistrySymbolizedFrame::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct RegularSourceMap {
-  version : Int
+  version : Int32
   file : String?
   source_root : String?
   sources : Array[String?]
   sources_content : Array[String?]?
   names : Array[String]
   mappings : String
-  ignore_list : Array[Int]
-} derive(Eq, @debug.Debug)
-pub fn RegularSourceMap::new(file? : String, source_root? : String, sources? : Array[String?], sources_content? : Array[String?], names? : Array[String], mappings? : String, ignore_list? : Array[Int]) -> Self
+  ignore_list : Array[Int32]
+}
+#deprecated
+pub fn RegularSourceMap::equal(Self, Self) -> Bool
+pub fn RegularSourceMap::new(file? : String, source_root? : String, sources? : Array[String?], sources_content? : Array[String?], names? : Array[String], mappings? : String, ignore_list? : Array[Int32]) -> Self
+#deprecated
+pub fn RegularSourceMap::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn RegularSourceMap::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct SourceContext {
   source : String?
-  focus_line : Int
-  focus_column : Int
-  start_line : Int
-  end_line : Int
+  focus_line : Int32
+  focus_column : Int32
+  start_line : Int32
+  end_line : Int32
   lines : Array[String]
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn SourceContext::equal(Self, Self) -> Bool
+#deprecated
+pub fn SourceContext::not_equal(Self, Self) -> Bool
 pub fn SourceContext::render(Self) -> String
-pub fn SourceContext::to_json(Self) -> Json
+pub fn SourceContext::to_json(Self) -> @json.Json
+#deprecated
+pub fn SourceContext::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct SourceEntry {
   url : String?
   content : String?
   ignored : Bool
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn SourceEntry::equal(Self, Self) -> Bool
 pub fn SourceEntry::new(url? : String, content? : String, ignored? : Bool) -> Self
+#deprecated
+pub fn SourceEntry::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn SourceEntry::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct SourceLine {
-  number : Int
-  start : Int
-  end : Int
+  number : Int32
+  start : Int32
+  end : Int32
   text : String
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn SourceLine::equal(Self, Self) -> Bool
+#deprecated
+pub fn SourceLine::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn SourceLine::to_repr(Self) -> @debug.Repr
 
 pub(all) struct SourceMapBuilder {
   file : String?
@@ -328,103 +490,118 @@ pub(all) struct SourceMapBuilder {
   mappings : Array[Mapping]
 }
 pub fn SourceMapBuilder::add_generated(Self, generated~ : Position) -> Unit raise SourceMapError
-pub fn SourceMapBuilder::add_mapping(Self, generated~ : Position, source_index~ : Int, original_line~ : Int, original_column~ : Int, name? : String) -> Unit raise SourceMapError
-pub fn SourceMapBuilder::add_name(Self, String) -> Int
-pub fn SourceMapBuilder::add_source(Self, url? : String, content? : String, ignored? : Bool) -> Int
+pub fn SourceMapBuilder::add_mapping(Self, generated~ : Position, source_index~ : Int32, original_line~ : Int32, original_column~ : Int32, name? : String) -> Unit raise SourceMapError
+pub fn SourceMapBuilder::add_name(Self, String) -> Int32
+pub fn SourceMapBuilder::add_source(Self, url? : String, content? : String, ignored? : Bool) -> Int32
 pub fn SourceMapBuilder::build(Self) -> RegularSourceMap raise SourceMapError
 pub fn SourceMapBuilder::build_decoded(Self) -> DecodedSourceMap
 pub fn SourceMapBuilder::clear_mappings(Self) -> Unit
-pub fn SourceMapBuilder::mapping_count(Self) -> Int
+pub fn SourceMapBuilder::mapping_count(Self) -> Int32
 pub fn SourceMapBuilder::new(file? : String) -> Self
-pub fn SourceMapBuilder::source_count(Self) -> Int
+pub fn SourceMapBuilder::source_count(Self) -> Int32
 
 pub(all) struct SourceMapConsumer {
   map : DecodedSourceMap
-  line_starts : Array[Int]
-  reverse : Map[Int, Array[Int]]
+  line_starts : Array[Int32]
+  reverse : Map[Int32, Array[Int32]]
 }
 pub fn SourceMapConsumer::from_document(SourceMapDocument, map_url? : String) -> Self raise SourceMapError
-pub fn SourceMapConsumer::generated_positions_for(Self, source_index~ : Int, line? : Int, column? : Int) -> Array[Mapping]
+pub fn SourceMapConsumer::generated_positions_for(Self, source_index~ : Int32, line? : Int32, column? : Int32) -> Array[Mapping]
 pub fn SourceMapConsumer::get_original_positions(Self, generated~ : Position) -> Array[OriginalPosition?]
 pub fn SourceMapConsumer::new(DecodedSourceMap) -> Self
 pub fn SourceMapConsumer::original_position_for(Self, generated~ : Position, bias? : LookupBias) -> Mapping?
 pub fn SourceMapConsumer::original_positions_for(Self, ArrayView[Position], bias? : LookupBias) -> Array[Mapping?]
-pub fn SourceMapConsumer::source_index_for_url(Self, String) -> Int?
-pub fn SourceMapConsumer::source_indices_for_url(Self, String) -> Array[Int]
+pub fn SourceMapConsumer::source_index_for_url(Self, String) -> Int32?
+pub fn SourceMapConsumer::source_indices_for_url(Self, String) -> Array[Int32]
 pub fn SourceMapConsumer::stats(Self) -> SourceMapStats
 
+#derive(Eq, @debug.Debug)
 pub(all) enum SourceMapDocument {
   Regular(RegularSourceMap)
   Indexed(IndexSourceMap)
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn SourceMapDocument::equal(Self, Self) -> Bool
 pub fn SourceMapDocument::file(Self) -> String?
-pub fn SourceMapDocument::version(Self) -> Int
+#deprecated
+pub fn SourceMapDocument::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn SourceMapDocument::to_repr(Self) -> @debug.Repr
+pub fn SourceMapDocument::version(Self) -> Int32
 
 pub(all) struct SourceMapRegistry {
   entries : Array[RegisteredSourceMap]
 }
 pub fn SourceMapRegistry::find(Self, String) -> RegisteredSourceMap?
 pub fn SourceMapRegistry::is_empty(Self) -> Bool
-pub fn SourceMapRegistry::length(Self) -> Int
+pub fn SourceMapRegistry::length(Self) -> Int32
 pub fn SourceMapRegistry::new() -> Self
 pub fn SourceMapRegistry::register(Self, name~ : String, generated_file~ : String, map~ : DecodedSourceMap, aliases? : Array[String]) -> Unit raise SourceMapError
-pub fn SourceMapRegistry::symbolize(Self, String, bias? : LookupBias, context_radius? : Int) -> RegistrySymbolizationReport raise SourceMapError
-pub fn SourceMapRegistry::symbolize_frame(Self, StackFrame, bias? : LookupBias, context_radius? : Int) -> RegistrySymbolizedFrame
+pub fn SourceMapRegistry::symbolize(Self, String, bias? : LookupBias, context_radius? : Int32) -> RegistrySymbolizationReport raise SourceMapError
+pub fn SourceMapRegistry::symbolize_frame(Self, StackFrame, bias? : LookupBias, context_radius? : Int32) -> RegistrySymbolizedFrame
 
+#derive(Eq, @debug.Debug)
 pub(all) struct SourceMapReport {
   file : String?
-  sources : Int
-  mappings : Int
-  mapped_segments : Int
-  generated_only_segments : Int
-  named_segments : Int
-  ignored_sources : Int
-  embedded_sources : Int
-  referenced_sources : Int
-  unreferenced_sources : Int
-  generated_lines : Int
-  original_lines : Int
-  duplicate_positions : Int
-  open_spans : Int
+  sources : Int32
+  mappings : Int32
+  mapped_segments : Int32
+  generated_only_segments : Int32
+  named_segments : Int32
+  ignored_sources : Int32
+  embedded_sources : Int32
+  referenced_sources : Int32
+  unreferenced_sources : Int32
+  generated_lines : Int32
+  original_lines : Int32
+  duplicate_positions : Int32
+  open_spans : Int32
   source_usage : Array[SourceUsage]
   generated_line_usage : Array[GeneratedLineUsage]
-} derive(Eq, @debug.Debug)
+}
 pub fn SourceMapReport::busiest_generated_line(Self) -> GeneratedLineUsage?
-pub fn SourceMapReport::content_coverage_percent(Self) -> Int
+pub fn SourceMapReport::content_coverage_percent(Self) -> Int32
 pub fn SourceMapReport::diagnostics(Self) -> Array[Diagnostic]
-pub fn SourceMapReport::empty_generated_lines(Self) -> Int
-pub fn SourceMapReport::generated_line(Self, Int) -> GeneratedLineUsage?
-pub fn SourceMapReport::generated_only_lines(Self) -> Array[Int]
+pub fn SourceMapReport::empty_generated_lines(Self) -> Int32
+#deprecated
+pub fn SourceMapReport::equal(Self, Self) -> Bool
+pub fn SourceMapReport::generated_line(Self, Int32) -> GeneratedLineUsage?
+pub fn SourceMapReport::generated_only_lines(Self) -> Array[Int32]
 pub fn SourceMapReport::has_complete_mappings(Self) -> Bool
 pub fn SourceMapReport::has_complete_source_usage(Self) -> Bool
 pub fn SourceMapReport::has_complete_sources_content(Self) -> Bool
 pub fn SourceMapReport::has_quality_warnings(Self) -> Bool
-pub fn SourceMapReport::ignored_source_indices(Self) -> Array[Int]
-pub fn SourceMapReport::ignored_source_percent(Self) -> Int
-pub fn SourceMapReport::lines_with_duplicates(Self) -> Array[Int]
-pub fn SourceMapReport::mapping_coverage_percent(Self) -> Int
-pub fn SourceMapReport::named_mapping_percent(Self) -> Int
+pub fn SourceMapReport::ignored_source_indices(Self) -> Array[Int32]
+pub fn SourceMapReport::ignored_source_percent(Self) -> Int32
+pub fn SourceMapReport::lines_with_duplicates(Self) -> Array[Int32]
+pub fn SourceMapReport::mapping_coverage_percent(Self) -> Int32
+pub fn SourceMapReport::named_mapping_percent(Self) -> Int32
+#deprecated
+pub fn SourceMapReport::not_equal(Self, Self) -> Bool
 pub fn SourceMapReport::render(Self) -> String
-pub fn SourceMapReport::source(Self, Int) -> SourceUsage?
-pub fn SourceMapReport::source_coverage_percent(Self) -> Int
-pub fn SourceMapReport::sources_without_content(Self) -> Array[Int]
+pub fn SourceMapReport::source(Self, Int32) -> SourceUsage?
+pub fn SourceMapReport::source_coverage_percent(Self) -> Int32
+pub fn SourceMapReport::sources_without_content(Self) -> Array[Int32]
 pub fn SourceMapReport::summary(Self) -> String
-pub fn SourceMapReport::to_json(Self) -> Json
-pub fn SourceMapReport::unreferenced_source_indices(Self) -> Array[Int]
-pub fn SourceMapReport::usable_embedded_sources(Self) -> Int
+pub fn SourceMapReport::to_json(Self) -> @json.Json
+#deprecated
+pub fn SourceMapReport::to_repr(Self) -> @debug.Repr
+pub fn SourceMapReport::unreferenced_source_indices(Self) -> Array[Int32]
+pub fn SourceMapReport::usable_embedded_sources(Self) -> Int32
 
 pub(all) struct SourceMapStats {
-  sources : Int
-  mappings : Int
-  mapped : Int
-  generated_only : Int
-  named : Int
-  ignored_sources : Int
-  generated_lines : Int
-  original_lines : Int
+  sources : Int32
+  mappings : Int32
+  mapped : Int32
+  generated_only : Int32
+  named : Int32
+  ignored_sources : Int32
+  generated_lines : Int32
+  original_lines : Int32
 }
-pub fn SourceMapStats::to_json(Self) -> Json
+pub fn SourceMapStats::to_json(Self) -> @json.Json
 
+#derive(Eq, @debug.Debug)
 pub(all) enum SourcePathKind {
   Anonymous
   DataUri
@@ -433,7 +610,13 @@ pub(all) enum SourcePathKind {
   WindowsAbsolute
   PosixAbsolute
   Relative
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn SourcePathKind::equal(Self, Self) -> Bool
+#deprecated
+pub fn SourcePathKind::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn SourcePathKind::to_repr(Self) -> @debug.Repr
 
 pub(all) struct SourceResolverOptions {
   map_url : String?
@@ -444,66 +627,94 @@ pub fn SourceResolverOptions::new(map_url? : String, source_root? : String, norm
 
 pub(all) struct SourceTextIndex {
   content : String
-  starts : Array[Int]
-  ends : Array[Int]
+  starts : Array[Int32]
+  ends : Array[Int32]
 }
-pub fn SourceTextIndex::contains(Self, line~ : Int, column~ : Int) -> Bool
-pub fn SourceTextIndex::context(Self, source? : String, line~ : Int, column~ : Int, radius? : Int) -> SourceContext?
-pub fn SourceTextIndex::line(Self, Int) -> SourceLine?
-pub fn SourceTextIndex::line_count(Self) -> Int
+pub fn SourceTextIndex::contains(Self, line~ : Int32, column~ : Int32) -> Bool
+pub fn SourceTextIndex::context(Self, source? : String, line~ : Int32, column~ : Int32, radius? : Int32) -> SourceContext?
+pub fn SourceTextIndex::line(Self, Int32) -> SourceLine?
+pub fn SourceTextIndex::line_count(Self) -> Int32
 pub fn SourceTextIndex::new(String) -> Self
 
+#derive(Eq, @debug.Debug)
 pub(all) struct SourceUsage {
-  source_index : Int
+  source_index : Int32
   url : String?
-  mapped_segments : Int
-  named_segments : Int
-  original_lines : Int
+  mapped_segments : Int32
+  named_segments : Int32
+  original_lines : Int32
   ignored : Bool
   has_content : Bool
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn SourceUsage::equal(Self, Self) -> Bool
 pub fn SourceUsage::is_referenced(Self) -> Bool
-pub fn SourceUsage::to_json(Self) -> Json
+#deprecated
+pub fn SourceUsage::not_equal(Self, Self) -> Bool
+pub fn SourceUsage::to_json(Self) -> @json.Json
+#deprecated
+pub fn SourceUsage::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct StackFrame {
   file : String
-  line : Int
-  column : Int
+  line : Int32
+  column : Int32
   function_name : String?
   raw : String
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn StackFrame::equal(Self, Self) -> Bool
+#deprecated
+pub fn StackFrame::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn StackFrame::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct SymbolizedFrame {
   generated : StackFrame
   source : String?
-  line : Int?
-  column : Int?
+  line : Int32?
+  column : Int32?
   name : String?
   ignored : Bool
   matched : Bool
-} derive(Eq, @debug.Debug)
+}
+#deprecated
+pub fn SymbolizedFrame::equal(Self, Self) -> Bool
+#deprecated
+pub fn SymbolizedFrame::not_equal(Self, Self) -> Bool
 pub fn SymbolizedFrame::render(Self) -> String
-pub fn SymbolizedFrame::to_json(Self) -> Json
+pub fn SymbolizedFrame::to_json(Self) -> @json.Json
+#deprecated
+pub fn SymbolizedFrame::to_repr(Self) -> @debug.Repr
 
 pub(all) struct TransformReport {
-  mappings_before : Int
-  mappings_after : Int
-  sources_before : Int
-  sources_after : Int
-  duplicates_removed : Int
-  sources_removed : Int
+  mappings_before : Int32
+  mappings_after : Int32
+  sources_before : Int32
+  sources_after : Int32
+  duplicates_removed : Int32
+  sources_removed : Int32
 }
-pub fn TransformReport::to_json(Self) -> Json
+pub fn TransformReport::to_json(Self) -> @json.Json
 
 pub(all) struct TransformResult {
   map : DecodedSourceMap
   report : TransformReport
 }
 
+#derive(Eq, @debug.Debug)
 pub(all) struct VlqValue {
-  value : Int
-  next_offset : Int
-} derive(Eq, @debug.Debug)
+  value : Int32
+  next_offset : Int32
+}
+#deprecated
+pub fn VlqValue::equal(Self, Self) -> Bool
+#deprecated
+pub fn VlqValue::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn VlqValue::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

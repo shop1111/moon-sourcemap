@@ -9,31 +9,34 @@ pub(all) struct RegisteredSourceMap {
 
 ///|
 /// Reason a registry symbolization did not produce an original location.
+#derive(Eq, Debug)
 pub(all) enum RegistryMissReason {
   MapNotFound
   MappingNotFound
   GeneratedOnly
-} derive(Eq, Debug)
+}
 
 ///|
 /// Result of symbolizing one frame through a source-map registry.
+#derive(Eq, Debug)
 pub(all) struct RegistrySymbolizedFrame {
   frame : StackFrame
   map_name : String?
   result : SymbolizedFrame?
   context : SourceContext?
   miss_reason : RegistryMissReason?
-} derive(Eq, Debug)
+}
 
 ///|
 /// Aggregate outcome for newline-separated multi-file stack frames.
+#derive(Eq, Debug)
 pub(all) struct RegistrySymbolizationReport {
   frames : Array[RegistrySymbolizedFrame]
-  matched : Int
-  map_missing : Int
-  mapping_missing : Int
-  generated_only : Int
-} derive(Eq, Debug)
+  matched : Int32
+  map_missing : Int32
+  mapping_missing : Int32
+  generated_only : Int32
+}
 
 ///|
 /// Registry for symbolizing frames from multiple generated artifacts.
@@ -44,7 +47,7 @@ pub(all) struct SourceMapRegistry {
 ///|
 /// Construct an empty registry.
 pub fn SourceMapRegistry::new() -> SourceMapRegistry {
-  { entries: [] }
+  { entries: [], }
 }
 
 ///|
@@ -85,7 +88,7 @@ pub fn SourceMapRegistry::register(
   name~ : String,
   generated_file~ : String,
   map~ : DecodedSourceMap,
-  aliases? : Array[String] = [],
+  aliases~ : Array[String] = [],
 ) -> Unit raise SourceMapError {
   if name.trim().is_empty() {
     raise InvalidDocument(
@@ -124,7 +127,7 @@ pub fn SourceMapRegistry::register(
 
 ///|
 /// Number of registered source maps.
-pub fn SourceMapRegistry::length(self : SourceMapRegistry) -> Int {
+pub fn SourceMapRegistry::length(self : SourceMapRegistry) -> Int32 {
   self.entries.length()
 }
 
@@ -164,7 +167,7 @@ fn registry_unmatched_frame(
   map_name : String?,
   reason : RegistryMissReason,
 ) -> RegistrySymbolizedFrame {
-  { frame, map_name, result: None, context: None, miss_reason: Some(reason) }
+  { frame, map_name, result: None, context: None, miss_reason: Some(reason), }
 }
 
 ///|
@@ -172,8 +175,8 @@ fn registry_unmatched_frame(
 pub fn SourceMapRegistry::symbolize_frame(
   self : SourceMapRegistry,
   frame : StackFrame,
-  bias? : LookupBias = GreatestLowerBound,
-  context_radius? : Int = 0,
+  bias~ : LookupBias = GreatestLowerBound,
+  context_radius~ : Int32 = 0,
 ) -> RegistrySymbolizedFrame {
   let entry = match self.find(frame.file) {
     Some(entry) => entry
@@ -216,8 +219,8 @@ pub fn SourceMapRegistry::symbolize_frame(
 pub fn SourceMapRegistry::symbolize(
   self : SourceMapRegistry,
   frames : String,
-  bias? : LookupBias = GreatestLowerBound,
-  context_radius? : Int = 0,
+  bias~ : LookupBias = GreatestLowerBound,
+  context_radius~ : Int32 = 0,
 ) -> RegistrySymbolizationReport raise SourceMapError {
   let results : Array[RegistrySymbolizedFrame] = []
   let mut matched = 0
@@ -242,7 +245,7 @@ pub fn SourceMapRegistry::symbolize(
     }
     results.push(result)
   }
-  { frames: results, matched, map_missing, mapping_missing, generated_only }
+  { frames: results, matched, map_missing, mapping_missing, generated_only, }
 }
 
 ///|

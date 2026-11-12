@@ -1,27 +1,29 @@
 ///|
 /// A generated stack frame accepted by the symbolizer.
+#derive(Eq, Debug)
 pub(all) struct StackFrame {
   file : String
-  line : Int
-  column : Int
+  line : Int32
+  column : Int32
   function_name : String?
   raw : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// A generated frame and its optional original location.
+#derive(Eq, Debug)
 pub(all) struct SymbolizedFrame {
   generated : StackFrame
   source : String?
-  line : Int?
-  column : Int?
+  line : Int32?
+  column : Int32?
   name : String?
   ignored : Bool
   matched : Bool
-} derive(Eq, Debug)
+}
 
 ///|
-fn parse_decimal(value : StringView) -> Int? {
+fn parse_decimal(value : StringView) -> Int32? {
   if value.is_empty() {
     return None
   }
@@ -94,7 +96,7 @@ pub fn parse_stack_frame(input : String) -> StackFrame raise SourceMapError {
         message="column must be a non-negative integer",
       )
   }
-  { file: file.to_owned(), line, column, function_name, raw: input }
+  { file: file.to_owned(), line, column, function_name, raw: input, }
 }
 
 ///|
@@ -115,7 +117,7 @@ fn unmatched_frame(frame : StackFrame) -> SymbolizedFrame {
 pub fn symbolize_frame(
   map : DecodedSourceMap,
   frame : StackFrame,
-  bias? : LookupBias = GreatestLowerBound,
+  bias~ : LookupBias = GreatestLowerBound,
 ) -> SymbolizedFrame {
   let mapping = original_position_for(
     map,
@@ -158,7 +160,7 @@ pub fn symbolize_frame(
 pub fn symbolize(
   map : DecodedSourceMap,
   frames : String,
-  bias? : LookupBias = GreatestLowerBound,
+  bias~ : LookupBias = GreatestLowerBound,
 ) -> Array[SymbolizedFrame] raise SourceMapError {
   let result : Array[SymbolizedFrame] = []
   for line in frames.split("\n") {
@@ -180,7 +182,7 @@ fn frame_json_string(value : String?) -> Json {
 }
 
 ///|
-fn frame_json_number(value : Int?) -> Json {
+fn frame_json_number(value : Int32?) -> Json {
   match value {
     Some(value) => Json::number(value.to_double())
     None => Json::null()

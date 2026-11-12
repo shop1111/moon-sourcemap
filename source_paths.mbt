@@ -1,5 +1,6 @@
 ///|
 /// Classification used while resolving source entries.
+#derive(Eq, Debug)
 pub(all) enum SourcePathKind {
   Anonymous
   DataUri
@@ -8,7 +9,7 @@ pub(all) enum SourcePathKind {
   WindowsAbsolute
   PosixAbsolute
   Relative
-} derive(Eq, Debug)
+}
 
 ///|
 /// Options for resolving `sourceRoot` and source entries.
@@ -23,9 +24,9 @@ pub(all) struct SourceResolverOptions {
 pub fn SourceResolverOptions::new(
   map_url? : String,
   source_root? : String,
-  normalize_windows? : Bool = true,
+  normalize_windows~ : Bool = true,
 ) -> SourceResolverOptions {
-  { map_url, source_root, normalize_windows }
+  { map_url, source_root, normalize_windows, }
 }
 
 ///|
@@ -214,7 +215,7 @@ fn resolve_relative_source(
 /// against the directory containing the map.
 pub fn resolve_source_url(
   source : String?,
-  options? : SourceResolverOptions = SourceResolverOptions::new(),
+  options~ : SourceResolverOptions = SourceResolverOptions::new(),
 ) -> String? {
   match source {
     None => None

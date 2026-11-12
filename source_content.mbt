@@ -1,36 +1,38 @@
 ///|
 /// One indexed line of embedded source content.
+#derive(Eq, Debug)
 pub(all) struct SourceLine {
-  number : Int
-  start : Int
-  end : Int
+  number : Int32
+  start : Int32
+  end : Int32
   text : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// A line index over one `sourcesContent` entry.
 pub(all) struct SourceTextIndex {
   content : String
-  starts : Array[Int]
-  ends : Array[Int]
+  starts : Array[Int32]
+  ends : Array[Int32]
 }
 
 ///|
 /// Source lines surrounding an original position.
+#derive(Eq, Debug)
 pub(all) struct SourceContext {
   source : String?
-  focus_line : Int
-  focus_column : Int
-  start_line : Int
-  end_line : Int
+  focus_line : Int32
+  focus_column : Int32
+  start_line : Int32
+  end_line : Int32
   lines : Array[String]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Build a CRLF-aware source text index.
 pub fn SourceTextIndex::new(content : String) -> SourceTextIndex {
-  let starts : Array[Int] = [0]
-  let ends : Array[Int] = []
+  let starts : Array[Int32] = [0]
+  let ends : Array[Int32] = []
   let mut cursor = 0
   while cursor < content.length() {
     match content.get_char(cursor) {
@@ -54,12 +56,12 @@ pub fn SourceTextIndex::new(content : String) -> SourceTextIndex {
     }
   }
   ends.push(content.length())
-  { content, starts, ends }
+  { content, starts, ends, }
 }
 
 ///|
 /// Return the number of logical source lines.
-pub fn SourceTextIndex::line_count(self : SourceTextIndex) -> Int {
+pub fn SourceTextIndex::line_count(self : SourceTextIndex) -> Int32 {
   self.starts.length()
 }
 
@@ -67,14 +69,14 @@ pub fn SourceTextIndex::line_count(self : SourceTextIndex) -> Int {
 /// Return one indexed line.
 pub fn SourceTextIndex::line(
   self : SourceTextIndex,
-  number : Int,
+  number : Int32,
 ) -> SourceLine? {
   if number < 0 || number >= self.starts.length() {
     None
   } else {
     let start = self.starts[number]
     let end = self.ends[number]
-    Some({ number, start, end, text: self.content[start:end].to_owned() })
+    Some({ number, start, end, text: self.content[start:end].to_owned(), })
   }
 }
 
@@ -82,8 +84,8 @@ pub fn SourceTextIndex::line(
 /// Check whether a zero-based original position exists in the source.
 pub fn SourceTextIndex::contains(
   self : SourceTextIndex,
-  line~ : Int,
-  column~ : Int,
+  line~ : Int32,
+  column~ : Int32,
 ) -> Bool {
   match self.line(line) {
     Some(source_line) => column >= 0 && column <= source_line.text.length()
@@ -92,7 +94,11 @@ pub fn SourceTextIndex::contains(
 }
 
 ///|
-fn context_bounds(line : Int, radius : Int, count : Int) -> (Int, Int) {
+fn context_bounds(
+  line : Int32,
+  radius : Int32,
+  count : Int32,
+) -> (Int32, Int32) {
   let safe_radius = if radius < 0 { 0 } else { radius }
   let start = if line < safe_radius { 0 } else { line - safe_radius }
   let wanted_end = line + safe_radius + 1
@@ -105,9 +111,9 @@ fn context_bounds(line : Int, radius : Int, count : Int) -> (Int, Int) {
 pub fn SourceTextIndex::context(
   self : SourceTextIndex,
   source? : String,
-  line~ : Int,
-  column~ : Int,
-  radius? : Int = 1,
+  line~ : Int32,
+  column~ : Int32,
+  radius~ : Int32 = 1,
 ) -> SourceContext? {
   if !self.contains(line~, column~) {
     return None
@@ -178,7 +184,7 @@ pub fn SourceContext::to_json(self : SourceContext) -> Json {
 pub fn source_context_for_mapping(
   map : DecodedSourceMap,
   mapping : Mapping,
-  radius? : Int = 1,
+  radius~ : Int32 = 1,
 ) -> SourceContext? {
   match mapping.original {
     None => None
@@ -207,7 +213,7 @@ pub fn source_context_for_mapping(
 pub fn source_context_for_frame(
   map : DecodedSourceMap,
   frame : SymbolizedFrame,
-  radius? : Int = 1,
+  radius~ : Int32 = 1,
 ) -> SourceContext? {
   if !frame.matched {
     return None

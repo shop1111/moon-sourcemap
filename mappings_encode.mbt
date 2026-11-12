@@ -1,5 +1,5 @@
 ///|
-fn find_name_index(names : ArrayView[String], target : String) -> Int? {
+fn find_name_index(names : ArrayView[String], target : String) -> Int32? {
   for index, name in names {
     if name == target {
       return Some(index)
@@ -9,7 +9,7 @@ fn find_name_index(names : ArrayView[String], target : String) -> Int? {
 }
 
 ///|
-fn append_vlq(output : StringBuilder, value : Int) -> Unit {
+fn append_vlq(output : StringBuilder, value : Int32) -> Unit {
   output.write_string(encode_vlq(value))
 }
 

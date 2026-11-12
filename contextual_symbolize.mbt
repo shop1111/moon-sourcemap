@@ -1,26 +1,28 @@
 ///|
 /// One symbolized frame with optional embedded source context.
+#derive(Eq, Debug)
 pub(all) struct ContextualSymbolizedFrame {
   result : SymbolizedFrame
   context : SourceContext?
-} derive(Eq, Debug)
+}
 
 ///|
 /// Aggregate single-map symbolization outcome.
+#derive(Eq, Debug)
 pub(all) struct ContextualSymbolizationReport {
   frames : Array[ContextualSymbolizedFrame]
-  matched : Int
-  unmatched : Int
-  with_context : Int
-} derive(Eq, Debug)
+  matched : Int32
+  unmatched : Int32
+  with_context : Int32
+}
 
 ///|
 /// Symbolize one frame and attach embedded source context when available.
 pub fn symbolize_frame_with_context(
   map : DecodedSourceMap,
   frame : StackFrame,
-  bias? : LookupBias = GreatestLowerBound,
-  context_radius? : Int = 1,
+  bias~ : LookupBias = GreatestLowerBound,
+  context_radius~ : Int32 = 1,
 ) -> ContextualSymbolizedFrame {
   let result = symbolize_frame(map, frame, bias~)
   let context = if result.matched && context_radius >= 0 {
@@ -40,7 +42,7 @@ pub fn symbolize_frame_with_context(
   } else {
     None
   }
-  { result, context }
+  { result, context, }
 }
 
 ///|
@@ -48,8 +50,8 @@ pub fn symbolize_frame_with_context(
 pub fn symbolize_with_context(
   map : DecodedSourceMap,
   frames : String,
-  bias? : LookupBias = GreatestLowerBound,
-  context_radius? : Int = 1,
+  bias~ : LookupBias = GreatestLowerBound,
+  context_radius~ : Int32 = 1,
 ) -> ContextualSymbolizationReport raise SourceMapError {
   if context_radius < 0 {
     raise InvalidField(
@@ -82,7 +84,7 @@ pub fn symbolize_with_context(
     }
     results.push(contextual)
   }
-  { frames: results, matched, unmatched, with_context }
+  { frames: results, matched, unmatched, with_context, }
 }
 
 ///|

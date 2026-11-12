@@ -3,20 +3,21 @@
 ///
 /// ECMA-426 uses zero-based positions internally. CLI inputs are also zero
 /// based so there is no hidden conversion at the library boundary.
+#derive(Eq, Debug)
 pub(all) struct Position {
-  line : Int
-  column : Int
-} derive(Eq, Debug)
+  line : Int32
+  column : Int32
+}
 
 ///|
 /// Construct a generated position.
-pub fn Position::new(line~ : Int, column~ : Int) -> Position {
-  { line, column }
+pub fn Position::new(line~ : Int32, column~ : Int32) -> Position {
+  { line, column, }
 }
 
 ///|
 /// Compare two positions in generated order.
-pub fn Position::compare(self : Position, other : Position) -> Int {
+pub fn Position::compare(self : Position, other : Position) -> Int32 {
   if self.line < other.line {
     -1
   } else if self.line > other.line {
@@ -40,20 +41,21 @@ pub fn Position::is_valid(self : Position) -> Bool {
 /// A location in an original source.
 ///
 /// `source_index` indexes the decoded source table.
+#derive(Eq, Debug)
 pub(all) struct OriginalPosition {
-  source_index : Int
-  line : Int
-  column : Int
-} derive(Eq, Debug)
+  source_index : Int32
+  line : Int32
+  column : Int32
+}
 
 ///|
 /// Construct an original position.
 pub fn OriginalPosition::new(
-  source_index~ : Int,
-  line~ : Int,
-  column~ : Int,
+  source_index~ : Int32,
+  line~ : Int32,
+  column~ : Int32,
 ) -> OriginalPosition {
-  { source_index, line, column }
+  { source_index, line, column, }
 }
 
 ///|
@@ -66,16 +68,17 @@ pub fn OriginalPosition::is_valid(self : OriginalPosition) -> Bool {
 /// One decoded Source Map mapping.
 ///
 /// Generated-only segments have `original=None` and `name=None`.
+#derive(Eq, Debug)
 pub(all) struct Mapping {
   generated : Position
   original : OriginalPosition?
   name : String?
-} derive(Eq, Debug)
+}
 
 ///|
 /// Construct a generated-only mapping.
 pub fn Mapping::generated_only(generated~ : Position) -> Mapping {
-  { generated, original: None, name: None }
+  { generated, original: None, name: None, }
 }
 
 ///|
@@ -85,50 +88,52 @@ pub fn Mapping::mapped(
   original~ : OriginalPosition,
   name? : String,
 ) -> Mapping {
-  { generated, original: Some(original), name }
+  { generated, original: Some(original), name, }
 }
 
 ///|
 /// A raw source entry after source table decoding.
+#derive(Eq, Debug)
 pub(all) struct SourceEntry {
   url : String?
   content : String?
   ignored : Bool
-} derive(Eq, Debug)
+}
 
 ///|
 /// Construct a decoded source entry.
 pub fn SourceEntry::new(
   url? : String,
   content? : String,
-  ignored? : Bool = false,
+  ignored~ : Bool = false,
 ) -> SourceEntry {
-  { url, content, ignored }
+  { url, content, ignored, }
 }
 
 ///|
 /// A regular ECMA-426 source map document.
+#derive(Eq, Debug)
 pub(all) struct RegularSourceMap {
-  version : Int
+  version : Int32
   file : String?
   source_root : String?
   sources : Array[String?]
   sources_content : Array[String?]?
   names : Array[String]
   mappings : String
-  ignore_list : Array[Int]
-} derive(Eq, Debug)
+  ignore_list : Array[Int32]
+}
 
 ///|
 /// Construct an empty version-3 regular map.
 pub fn RegularSourceMap::new(
   file? : String,
   source_root? : String,
-  sources? : Array[String?] = [],
+  sources~ : Array[String?] = [],
   sources_content? : Array[String?],
-  names? : Array[String] = [],
-  mappings? : String = "",
-  ignore_list? : Array[Int] = [],
+  names~ : Array[String] = [],
+  mappings~ : String = "",
+  ignore_list~ : Array[Int32] = [],
 ) -> RegularSourceMap {
   {
     version: 3,
@@ -144,10 +149,11 @@ pub fn RegularSourceMap::new(
 
 ///|
 /// An embedded source map and its generated offset.
+#derive(Eq, Debug)
 pub(all) struct IndexSection {
   offset : Position
   map : SourceMapDocument
-} derive(Eq, Debug)
+}
 
 ///|
 /// Construct an index section.
@@ -155,36 +161,38 @@ pub fn IndexSection::new(
   offset~ : Position,
   map~ : SourceMapDocument,
 ) -> IndexSection {
-  { offset, map }
+  { offset, map, }
 }
 
 ///|
 /// An ECMA-426 index source map.
+#derive(Eq, Debug)
 pub(all) struct IndexSourceMap {
-  version : Int
+  version : Int32
   file : String?
   sections : Array[IndexSection]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Construct an empty version-3 index map.
 pub fn IndexSourceMap::new(
   file? : String,
-  sections? : Array[IndexSection] = [],
+  sections~ : Array[IndexSection] = [],
 ) -> IndexSourceMap {
-  { version: 3, file, sections }
+  { version: 3, file, sections, }
 }
 
 ///|
 /// The raw JSON document shape accepted by MoonSourceMap.
+#derive(Eq, Debug)
 pub(all) enum SourceMapDocument {
   Regular(RegularSourceMap)
   Indexed(IndexSourceMap)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Return the document version.
-pub fn SourceMapDocument::version(self : SourceMapDocument) -> Int {
+pub fn SourceMapDocument::version(self : SourceMapDocument) -> Int32 {
   match self {
     Regular(map) => map.version
     Indexed(map) => map.version
@@ -202,59 +210,63 @@ pub fn SourceMapDocument::file(self : SourceMapDocument) -> String? {
 
 ///|
 /// A flattened, decoded source map optimized for lookup.
+#derive(Eq, Debug)
 pub(all) struct DecodedSourceMap {
   file : String?
   sources : Array[SourceEntry]
   mappings : Array[Mapping]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Construct a decoded map.
 pub fn DecodedSourceMap::new(
   file? : String,
-  sources? : Array[SourceEntry] = [],
-  mappings? : Array[Mapping] = [],
+  sources~ : Array[SourceEntry] = [],
+  mappings~ : Array[Mapping] = [],
 ) -> DecodedSourceMap {
-  { file, sources, mappings }
+  { file, sources, mappings, }
 }
 
 ///|
 /// Bias used when a position has no exact mapping.
+#derive(Eq, Debug)
 pub(all) enum LookupBias {
   GreatestLowerBound
   LeastUpperBound
-} derive(Eq, Debug)
+}
 
 ///|
 /// Severity for validation diagnostics.
+#derive(Eq, Debug)
 pub(all) enum DiagnosticSeverity {
   Error
   Warning
-} derive(Eq, Debug)
+}
 
 ///|
 /// A stable, machine-readable validation diagnostic.
+#derive(Eq, Debug)
 pub(all) struct Diagnostic {
   severity : DiagnosticSeverity
   code : String
   message : String
   path : String
-  mapping_line : Int?
-  segment : Int?
-  offset : Int?
-} derive(Eq, Debug)
+  mapping_line : Int32?
+  segment : Int32?
+  offset : Int32?
+}
 
 ///|
 /// Construct an error diagnostic.
 pub fn Diagnostic::error(
   code~ : String,
   message~ : String,
-  path? : String = "$",
-  mapping_line? : Int,
-  segment? : Int,
-  offset? : Int,
+  path~ : String = "$",
+  mapping_line? : Int32,
+  segment? : Int32,
+  offset? : Int32,
 ) -> Diagnostic {
-  { severity: Error, code, message, path, mapping_line, segment, offset }
+  { severity: Error, code, message, path, mapping_line, segment, offset, }
 }
 
 ///|
@@ -262,12 +274,12 @@ pub fn Diagnostic::error(
 pub fn Diagnostic::warning(
   code~ : String,
   message~ : String,
-  path? : String = "$",
-  mapping_line? : Int,
-  segment? : Int,
-  offset? : Int,
+  path~ : String = "$",
+  mapping_line? : Int32,
+  segment? : Int32,
+  offset? : Int32,
 ) -> Diagnostic {
-  { severity: Warning, code, message, path, mapping_line, segment, offset }
+  { severity: Warning, code, message, path, mapping_line, segment, offset, }
 }
 
 ///|

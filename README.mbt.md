@@ -136,10 +136,27 @@ v0.1 不实现仍在演进的 Scopes、Range Mappings、Debug ID 与 Env
 
 ### 当前里程碑
 
-当前 0.1.1 已完成核心库、六命令 CLI、源码上下文、多文件 map registry、
+当前 0.1.2 已完成核心库、六命令 CLI、源码上下文、多文件 map registry、
 结构质量报告、TC39 选例、四后端 CI、示例和发布元数据。生产 MoonBit
 有效代码由 CI 强制保持在 4000–4499 行，不把测试、空行、纯注释、示例
 或第三方数据计入。
+
+### 工具链兼容性
+
+0.1.2 已在以下官方工具链上验证 `fmt --check`、四后端
+`check/build/test --deny-warn`、`moon info` 接口一致性、CLI 验收与打包：
+
+```text
+moon    0.1.20261104 (940aa18 2026-11-04)
+moonc   v0.10.20+65efd5b93 (2026-11-05)
+moonrun 0.1.20261104 (940aa18 2026-11-04)
+```
+
+需要 moonc v0.10.20 及以上（使用 `#derive(...)`、`x~ : T = default`
+可选参数和显式 `extend` 语法）。CI 在每次推送和每周一自动安装最新官方
+工具链复跑全部检查。旧版本中由 `derive(Eq, Debug)` 隐式提升的
+`equal`/`not_equal`/`to_repr` 方法仍保留，但已标记为弃用，请改用 `==`
+与 `debug_inspect`。
 
 ## English
 
@@ -165,6 +182,16 @@ moon package
 The CLI uses stable JSON output and deterministic exit codes, so `validate`,
 `inspect`, `lookup`, `flatten`, `compose`, and `symbolize` can be used directly
 in CI.
+
+### Toolchain compatibility
+
+Version 0.1.2 is verified on the official MoonBit toolchain
+`moon 0.1.20261104` / `moonc v0.10.20+65efd5b93` across wasm, wasm-gc, js and
+native, and requires moonc v0.10.20 or newer. CI reinstalls the latest
+official toolchain on every push and every Monday. The `equal`, `not_equal`
+and `to_repr` methods that older compilers promoted implicitly from
+`derive(Eq, Debug)` are still exported but deprecated; use `==` and
+`debug_inspect` instead.
 
 ## License
 

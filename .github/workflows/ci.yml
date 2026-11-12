@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  schedule:
+    # Weekly run against the latest official toolchain to catch compatibility drift.
+    - cron: "0 1 * * 1"
 
 permissions:
   contents: read
@@ -72,4 +75,4 @@ jobs:
       - name: Package
         run: |
           moon package
-          test -s _build/publish/shop1111-moon_sourcemap-0.1.1.zip
+          test -s _build/publish/shop1111-moon_sourcemap-0.1.2.zip

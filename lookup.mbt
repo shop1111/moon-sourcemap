@@ -1,6 +1,6 @@
 ///|
-fn ignored_source_indices(values : ArrayView[Int]) -> Map[Int, Unit] {
-  let ignored : Map[Int, Unit] = Map([])
+fn ignored_source_indices(values : ArrayView[Int32]) -> Map[Int32, Unit] {
+  let ignored : Map[Int32, Unit] = Map([])
   for value in values {
     ignored[value] = ()
   }
@@ -8,7 +8,7 @@ fn ignored_source_indices(values : ArrayView[Int]) -> Map[Int, Unit] {
 }
 
 ///|
-fn source_content_at(contents : Array[String?]?, index : Int) -> String? {
+fn source_content_at(contents : Array[String?]?, index : Int32) -> String? {
   match contents {
     Some(contents) =>
       if index < contents.length() {
@@ -60,7 +60,7 @@ pub fn decode_regular_source_map(
 }
 
 ///|
-fn lower_bound(mappings : ArrayView[Mapping], generated : Position) -> Int {
+fn lower_bound(mappings : ArrayView[Mapping], generated : Position) -> Int32 {
   let mut low = 0
   let mut high = mappings.length()
   while low < high {
@@ -75,7 +75,7 @@ fn lower_bound(mappings : ArrayView[Mapping], generated : Position) -> Int {
 }
 
 ///|
-fn upper_bound(mappings : ArrayView[Mapping], generated : Position) -> Int {
+fn upper_bound(mappings : ArrayView[Mapping], generated : Position) -> Int32 {
   let mut low = 0
   let mut high = mappings.length()
   while low < high {
@@ -100,7 +100,7 @@ fn upper_bound(mappings : ArrayView[Mapping], generated : Position) -> Int {
 pub fn original_position_for(
   map : DecodedSourceMap,
   generated~ : Position,
-  bias? : LookupBias = GreatestLowerBound,
+  bias~ : LookupBias = GreatestLowerBound,
 ) -> Mapping? {
   if !generated.is_valid() || map.mappings.is_empty() {
     return None
@@ -157,9 +157,9 @@ pub fn get_original_positions(
 /// returned. Results remain in generated order.
 pub fn generated_positions_for(
   map : DecodedSourceMap,
-  source_index~ : Int,
-  line~ : Int,
-  column? : Int,
+  source_index~ : Int32,
+  line~ : Int32,
+  column? : Int32,
 ) -> Array[Mapping] {
   let result : Array[Mapping] = []
   if source_index < 0 || line < 0 {

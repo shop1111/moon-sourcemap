@@ -1,12 +1,21 @@
 ///|
-fn registry_fixture_map(file : String, source : String) -> DecodedSourceMap {
-  DecodedSourceMap::new(
+fn registry_fixture_map(
+  file : String,
+  source : String,
+) -> @moon_sourcemap.DecodedSourceMap {
+  @moon_sourcemap.DecodedSourceMap::new(
     file~,
-    sources=[SourceEntry::new(url=source, content="zero\none\ntwo")],
+    sources=[
+      @moon_sourcemap.SourceEntry::new(url=source, content="zero\none\ntwo"),
+    ],
     mappings=[
-      Mapping::mapped(
-        generated=Position::new(line=0, column=0),
-        original=OriginalPosition::new(source_index=0, line=1, column=1),
+      @moon_sourcemap.Mapping::mapped(
+        generated=@moon_sourcemap.Position::new(line=0, column=0),
+        original=@moon_sourcemap.OriginalPosition::new(
+          source_index=0,
+          line=1,
+          column=1,
+        ),
         name="entry",
       ),
     ],
@@ -15,7 +24,7 @@ fn registry_fixture_map(file : String, source : String) -> DecodedSourceMap {
 
 ///|
 test "registry uses exact and normalized aliases" {
-  let registry = SourceMapRegistry::new()
+  let registry = @moon_sourcemap.SourceMapRegistry::new()
   registry.register(
     name="app",
     generated_file="dist/app.js",
@@ -30,7 +39,7 @@ test "registry uses exact and normalized aliases" {
 
 ///|
 test "registry rejects alias conflicts" {
-  let registry = SourceMapRegistry::new()
+  let registry = @moon_sourcemap.SourceMapRegistry::new()
   registry.register(
     name="first",
     generated_file="dist/app.js",
@@ -52,7 +61,7 @@ test "registry rejects alias conflicts" {
 
 ///|
 test "registry distinguishes missing map mapping and generated-only" {
-  let registry = SourceMapRegistry::new()
+  let registry = @moon_sourcemap.SourceMapRegistry::new()
   registry.register(
     name="mapped",
     generated_file="mapped.js",
@@ -61,8 +70,10 @@ test "registry distinguishes missing map mapping and generated-only" {
   registry.register(
     name="generated",
     generated_file="generated.js",
-    map=DecodedSourceMap::new(mappings=[
-      Mapping::generated_only(generated=Position::new(line=0, column=0)),
+    map=@moon_sourcemap.DecodedSourceMap::new(mappings=[
+      @moon_sourcemap.Mapping::generated_only(
+        generated=@moon_sourcemap.Position::new(line=0, column=0),
+      ),
     ]),
   )
   let report = registry.symbolize(

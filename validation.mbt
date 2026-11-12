@@ -64,8 +64,8 @@ pub fn diagnostics_have_errors(diagnostics : ArrayView[Diagnostic]) -> Bool {
 }
 
 ///|
-fn duplicate_int(values : ArrayView[Int]) -> Int? {
-  let seen : Map[Int, Unit] = Map([])
+fn duplicate_int(values : ArrayView[Int32]) -> Int32? {
+  let seen : Map[Int32, Unit] = Map([])
   for value in values {
     if seen.contains(value) {
       return Some(value)

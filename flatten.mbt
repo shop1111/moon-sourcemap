@@ -33,7 +33,7 @@ fn append_decoded_section(
         )
       None => None
     }
-    destination.mappings.push({ generated, original, name: mapping.name })
+    destination.mappings.push({ generated, original, name: mapping.name, })
   }
 }
 
@@ -115,8 +115,8 @@ fn decoded_contents(decoded : DecodedSourceMap) -> Array[String?]? {
 }
 
 ///|
-fn decoded_ignore_list(decoded : DecodedSourceMap) -> Array[Int] {
-  let result : Array[Int] = []
+fn decoded_ignore_list(decoded : DecodedSourceMap) -> Array[Int32] {
+  let result : Array[Int32] = []
   for index, source in decoded.sources {
     if source.ignored {
       result.push(index)

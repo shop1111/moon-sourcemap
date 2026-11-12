@@ -1,20 +1,21 @@
 ///|
 /// Policy used when canonicalizing duplicate generated positions.
+#derive(Eq, Debug)
 pub(all) enum DuplicateMappingPolicy {
   KeepFirst
   KeepLast
   KeepAll
-} derive(Eq, Debug)
+}
 
 ///|
 /// Result metadata for map normalization.
 pub(all) struct TransformReport {
-  mappings_before : Int
-  mappings_after : Int
-  sources_before : Int
-  sources_after : Int
-  duplicates_removed : Int
-  sources_removed : Int
+  mappings_before : Int32
+  mappings_after : Int32
+  sources_before : Int32
+  sources_after : Int32
+  duplicates_removed : Int32
+  sources_removed : Int32
 }
 
 ///|
@@ -25,7 +26,10 @@ pub(all) struct TransformResult {
 }
 
 ///|
-fn mapping_with_source_index(mapping : Mapping, source_index : Int) -> Mapping {
+fn mapping_with_source_index(
+  mapping : Mapping,
+  source_index : Int32,
+) -> Mapping {
   match mapping.original {
     Some(original) =>
       Mapping::mapped(
@@ -68,8 +72,8 @@ fn deduplicate_mappings(
 }
 
 ///|
-fn used_source_indices(mappings : ArrayView[Mapping]) -> Map[Int, Unit] {
-  let result : Map[Int, Unit] = Map([])
+fn used_source_indices(mappings : ArrayView[Mapping]) -> Map[Int32, Unit] {
+  let result : Map[Int32, Unit] = Map([])
   for mapping in mappings {
     match mapping.original {
       Some(original) => result[original.source_index] = ()
@@ -85,7 +89,7 @@ fn prune_sources(
   mappings : ArrayView[Mapping],
 ) -> (Array[SourceEntry], Array[Mapping]) {
   let used = used_source_indices(mappings)
-  let remap : Map[Int, Int] = Map([])
+  let remap : Map[Int32, Int32] = Map([])
   let retained : Array[SourceEntry] = []
   for index, source in sources {
     if used.contains(index) {
@@ -113,8 +117,8 @@ fn prune_sources(
 /// Sort mappings, resolve duplicates and optionally remove unused sources.
 pub fn canonicalize(
   map : DecodedSourceMap,
-  duplicate_policy? : DuplicateMappingPolicy = KeepLast,
-  remove_unused_sources? : Bool = true,
+  duplicate_policy~ : DuplicateMappingPolicy = KeepLast,
+  remove_unused_sources~ : Bool = true,
 ) -> TransformResult {
   let sorted = sort_mappings(map.mappings)
   let unique = deduplicate_mappings(sorted, duplicate_policy)
@@ -166,8 +170,8 @@ pub fn slice_generated(
 ///|
 fn shift_position(
   position : Position,
-  line_delta : Int,
-  first_line_column_delta : Int,
+  line_delta : Int32,
+  first_line_column_delta : Int32,
 ) -> Position raise SourceMapError {
   let line = position.line + line_delta
   let column = if position.line == 0 {
@@ -188,8 +192,8 @@ fn shift_position(
 /// Shift generated positions using the ECMA-426 section-offset rule.
 pub fn shift_generated(
   map : DecodedSourceMap,
-  line_delta? : Int = 0,
-  first_line_column_delta? : Int = 0,
+  line_delta~ : Int32 = 0,
+  first_line_column_delta~ : Int32 = 0,
 ) -> DecodedSourceMap raise SourceMapError {
   let mappings = map.mappings.map(mapping => {
     generated: shift_position(
@@ -204,7 +208,7 @@ pub fn shift_generated(
 }
 
 ///|
-fn remap_appended_mapping(mapping : Mapping, source_base : Int) -> Mapping {
+fn remap_appended_mapping(mapping : Mapping, source_base : Int32) -> Mapping {
   match mapping.original {
     Some(original) =>
       mapping_with_source_index(mapping, original.source_index + source_base)

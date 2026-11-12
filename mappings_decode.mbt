@@ -1,9 +1,9 @@
 ///|
 fn mapping_vlq(
   input : String,
-  offset : Int,
-  line : Int,
-  segment : Int,
+  offset : Int32,
+  line : Int32,
+  segment : Int32,
 ) -> VlqValue raise SourceMapError {
   decode_vlq_at(input, offset~) catch {
     InvalidVlq(offset=bad_offset, message~) =>
@@ -14,9 +14,9 @@ fn mapping_vlq(
 
 ///|
 fn invalid_segment(
-  line : Int,
-  segment : Int,
-  offset : Int,
+  line : Int32,
+  segment : Int32,
+  offset : Int32,
   message : String,
 ) -> SourceMapError {
   InvalidMappings(line~, segment~, offset~, message~)
@@ -30,7 +30,7 @@ fn invalid_segment(
 /// and source/name indices must remain inside the caller-provided tables.
 pub fn decode_mappings(
   input : String,
-  sources_count~ : Int,
+  sources_count~ : Int32,
   names~ : ArrayView[String],
 ) -> Array[Mapping] raise SourceMapError {
   if sources_count < 0 {
@@ -74,7 +74,7 @@ pub fn decode_mappings(
       continue
     }
     let segment_offset = cursor
-    let fields : Array[Int] = []
+    let fields : Array[Int32] = []
     while cursor < input.length() {
       let current = match input.get_char(cursor) {
         Some(current) => current
@@ -154,7 +154,7 @@ pub fn decode_mappings(
 
 ///|
 /// Count generated lines represented by a mappings string.
-pub fn mappings_line_count(input : String) -> Int {
+pub fn mappings_line_count(input : String) -> Int32 {
   let mut lines = 1
   for ch in input {
     if ch == ';' {

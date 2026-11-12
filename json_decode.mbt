@@ -26,7 +26,7 @@ fn json_string(value : Json, path : String) -> String raise SourceMapError {
 }
 
 ///|
-fn json_int(value : Json, path : String) -> Int raise SourceMapError {
+fn json_int(value : Json, path : String) -> Int32 raise SourceMapError {
   match value {
     Number(number, ..) =>
       if number != number.floor() {
@@ -106,7 +106,7 @@ fn optional_int_array(
   fields : Map[String, Json],
   key : String,
   path : String,
-) -> Array[Int] raise SourceMapError {
+) -> Array[Int32] raise SourceMapError {
   match fields.get(key) {
     None | Some(Null) => []
     Some(value) =>

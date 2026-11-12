@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.2 - 2026-11-12
+
+- Verify against MoonBit `moon 0.1.20261104` / `moonc v0.10.20+65efd5b93`;
+  moonc v0.10.20 is now the minimum supported compiler.
+- Migrate to `#derive(...)` and `x~ : T = default` optional-argument syntax.
+- Export the formerly implicit `equal`, `not_equal` and `to_repr` methods
+  through explicit, deprecated `extend` declarations so existing callers keep
+  compiling without `implicit_impl_as_method` warnings.
+- Qualify blackbox test references with `@moon_sourcemap` and drop the unused
+  `moonbitlang/core/json` import from the CLI package.
+- Run CI weekly against the latest official toolchain.
+
 ## 0.1.1 - 2026-08-23
 
 - Implement ECMA-426 `GetOriginalPositions` for deterministic multi-result

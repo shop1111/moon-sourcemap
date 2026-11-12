@@ -2,25 +2,25 @@
 /// Precomputed indexes for repeated source-map queries.
 pub(all) struct SourceMapConsumer {
   map : DecodedSourceMap
-  line_starts : Array[Int]
-  reverse : Map[Int, Array[Int]]
+  line_starts : Array[Int32]
+  reverse : Map[Int32, Array[Int32]]
 }
 
 ///|
 /// Summary metrics useful for CI reports and producer diagnostics.
 pub(all) struct SourceMapStats {
-  sources : Int
-  mappings : Int
-  mapped : Int
-  generated_only : Int
-  named : Int
-  ignored_sources : Int
-  generated_lines : Int
-  original_lines : Int
+  sources : Int32
+  mappings : Int32
+  mapped : Int32
+  generated_only : Int32
+  named : Int32
+  ignored_sources : Int32
+  generated_lines : Int32
+  original_lines : Int32
 }
 
 ///|
-fn max_generated_line(mappings : ArrayView[Mapping]) -> Int {
+fn max_generated_line(mappings : ArrayView[Mapping]) -> Int32 {
   let mut result = -1
   for mapping in mappings {
     if mapping.generated.line > result {
@@ -31,7 +31,7 @@ fn max_generated_line(mappings : ArrayView[Mapping]) -> Int {
 }
 
 ///|
-fn build_line_starts(mappings : ArrayView[Mapping]) -> Array[Int] {
+fn build_line_starts(mappings : ArrayView[Mapping]) -> Array[Int32] {
   let maximum = max_generated_line(mappings)
   if maximum < 0 {
     return [0]
@@ -50,8 +50,10 @@ fn build_line_starts(mappings : ArrayView[Mapping]) -> Array[Int] {
 }
 
 ///|
-fn build_reverse_index(mappings : ArrayView[Mapping]) -> Map[Int, Array[Int]] {
-  let reverse : Map[Int, Array[Int]] = Map([])
+fn build_reverse_index(
+  mappings : ArrayView[Mapping],
+) -> Map[Int32, Array[Int32]] {
+  let reverse : Map[Int32, Array[Int32]] = Map([])
   for index, mapping in mappings {
     match mapping.original {
       Some(original) =>
@@ -98,7 +100,10 @@ pub fn SourceMapConsumer::from_document(
 }
 
 ///|
-fn consumer_line_range(consumer : SourceMapConsumer, line : Int) -> (Int, Int)? {
+fn consumer_line_range(
+  consumer : SourceMapConsumer,
+  line : Int32,
+) -> (Int32, Int32)? {
   if line < 0 || line + 1 >= consumer.line_starts.length() {
     None
   } else {
@@ -109,10 +114,10 @@ fn consumer_line_range(consumer : SourceMapConsumer, line : Int) -> (Int, Int)? 
 ///|
 fn lower_bound_range(
   mappings : ArrayView[Mapping],
-  start : Int,
-  end : Int,
-  column : Int,
-) -> Int {
+  start : Int32,
+  end : Int32,
+  column : Int32,
+) -> Int32 {
   let mut low = start
   let mut high = end
   while low < high {
@@ -129,10 +134,10 @@ fn lower_bound_range(
 ///|
 fn upper_bound_range(
   mappings : ArrayView[Mapping],
-  start : Int,
-  end : Int,
-  column : Int,
-) -> Int {
+  start : Int32,
+  end : Int32,
+  column : Int32,
+) -> Int32 {
   let mut low = start
   let mut high = end
   while low < high {
@@ -151,7 +156,7 @@ fn upper_bound_range(
 pub fn SourceMapConsumer::original_position_for(
   self : SourceMapConsumer,
   generated~ : Position,
-  bias? : LookupBias = GreatestLowerBound,
+  bias~ : LookupBias = GreatestLowerBound,
 ) -> Mapping? {
   if !generated.is_valid() {
     return None
@@ -209,7 +214,7 @@ pub fn SourceMapConsumer::get_original_positions(
 pub fn SourceMapConsumer::original_positions_for(
   self : SourceMapConsumer,
   positions : ArrayView[Position],
-  bias? : LookupBias = GreatestLowerBound,
+  bias~ : LookupBias = GreatestLowerBound,
 ) -> Array[Mapping?] {
   positions.map(position => {
     self.original_position_for(generated=position, bias~)
@@ -220,9 +225,9 @@ pub fn SourceMapConsumer::original_positions_for(
 /// Return mappings for one source, optionally filtered by original line.
 pub fn SourceMapConsumer::generated_positions_for(
   self : SourceMapConsumer,
-  source_index~ : Int,
-  line? : Int,
-  column? : Int,
+  source_index~ : Int32,
+  line? : Int32,
+  column? : Int32,
 ) -> Array[Mapping] {
   let result : Array[Mapping] = []
   match self.reverse.get(source_index) {
@@ -248,7 +253,7 @@ pub fn SourceMapConsumer::generated_positions_for(
 pub fn SourceMapConsumer::source_index_for_url(
   self : SourceMapConsumer,
   url : String,
-) -> Int? {
+) -> Int32? {
   for index, source in self.map.sources {
     if source.url == Some(url) {
       return Some(index)
@@ -262,8 +267,8 @@ pub fn SourceMapConsumer::source_index_for_url(
 pub fn SourceMapConsumer::source_indices_for_url(
   self : SourceMapConsumer,
   url : String,
-) -> Array[Int] {
-  let result : Array[Int] = []
+) -> Array[Int32] {
+  let result : Array[Int32] = []
   for index, source in self.map.sources {
     if source.url == Some(url) {
       result.push(index)

@@ -1,13 +1,19 @@
 ///|
 /// Checked errors raised while parsing or transforming source maps.
+#derive(Eq, Debug)
 pub(all) suberror SourceMapError {
   InvalidJson(message~ : String)
   InvalidField(path~ : String, message~ : String)
-  InvalidVlq(offset~ : Int, message~ : String)
-  InvalidMappings(line~ : Int, segment~ : Int, offset~ : Int, message~ : String)
+  InvalidVlq(offset~ : Int32, message~ : String)
+  InvalidMappings(
+    line~ : Int32,
+    segment~ : Int32,
+    offset~ : Int32,
+    message~ : String
+  )
   InvalidDocument(message~ : String)
   Io(message~ : String)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Return a stable error category.

@@ -1,18 +1,19 @@
 ///|
 /// One decoded signed Base64-VLQ value and the first unread UTF-16 offset.
+#derive(Eq, Debug)
 pub(all) struct VlqValue {
-  value : Int
-  next_offset : Int
-} derive(Eq, Debug)
+  value : Int32
+  next_offset : Int32
+}
 
 ///|
-const MAX_VLQ_INT : Int = 2147483647
+const MAX_VLQ_INT : Int32 = 2147483647
 
 ///|
 const MAX_VLQ_UNSIGNED : Int64 = 4294967295L
 
 ///|
-fn base64_digit_to_char(value : Int) -> Char {
+fn base64_digit_to_char(value : Int32) -> Char {
   let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
   match alphabet.get_char(value) {
     Some(ch) => ch
@@ -21,11 +22,11 @@ fn base64_digit_to_char(value : Int) -> Char {
 }
 
 ///|
-fn base64_char_to_digit(ch : Char) -> Int? {
+fn base64_char_to_digit(ch : Char) -> Int32? {
   match ch {
-    'A'..='Z' => Some(ch.to_int() - 'A')
-    'a'..='z' => Some(ch.to_int() - 'a' + 26)
-    '0'..='9' => Some(ch.to_int() - '0' + 52)
+    'A'..<='Z' => Some(ch.to_int() - 'A')
+    'a'..<='z' => Some(ch.to_int() - 'a' + 26)
+    '0'..<='9' => Some(ch.to_int() - '0' + 52)
     '+' => Some(62)
     '/' => Some(63)
     _ => None
@@ -36,7 +37,7 @@ fn base64_char_to_digit(ch : Char) -> Int? {
 /// Encode one signed integer using the Base64-VLQ alphabet required by
 /// ECMA-426.
 ///
-pub fn encode_vlq(value : Int) -> String {
+pub fn encode_vlq(value : Int32) -> String {
   let signed : Int64 = if value == -2147483648 {
     // ECMA-426 reserves the negative-zero bit pattern for the minimum i32.
     1L
@@ -71,7 +72,7 @@ pub fn encode_vlq(value : Int) -> String {
 /// Source Map segment.
 pub fn decode_vlq_at(
   input : String,
-  offset~ : Int,
+  offset~ : Int32,
 ) -> VlqValue raise SourceMapError {
   if offset < 0 || offset >= input.length() {
     raise InvalidVlq(offset~, message="expected a Base64-VLQ value")
@@ -132,12 +133,12 @@ pub fn decode_vlq_at(
   } else {
     magnitude.to_int()
   }
-  { value, next_offset: cursor }
+  { value, next_offset: cursor, }
 }
 
 ///|
 /// Decode a string containing exactly one Base64-VLQ value.
-pub fn decode_vlq(input : String) -> Int raise SourceMapError {
+pub fn decode_vlq(input : String) -> Int32 raise SourceMapError {
   let decoded = decode_vlq_at(input, offset=0)
   if decoded.next_offset != input.length() {
     raise InvalidVlq(

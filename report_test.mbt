@@ -1,12 +1,18 @@
 ///|
 test "mapping spans close within a generated line" {
   let map = lookup_fixture()
-  let spans = mapping_spans(map)
+  let spans = @moon_sourcemap.mapping_spans(map)
   assert_eq(spans.length(), 4)
-  assert_true(spans[0].end == Some(Position::new(line=0, column=5)))
+  assert_true(
+    spans[0].end == Some(@moon_sourcemap.Position::new(line=0, column=5)),
+  )
   assert_true(spans[0].column_width() == Some(5))
-  assert_true(spans[0].contains(Position::new(line=0, column=4)))
-  assert_false(spans[0].contains(Position::new(line=0, column=5)))
+  assert_true(
+    spans[0].contains(@moon_sourcemap.Position::new(line=0, column=4)),
+  )
+  assert_false(
+    spans[0].contains(@moon_sourcemap.Position::new(line=0, column=5)),
+  )
   assert_true(spans[2].end is None)
   assert_true(spans[3].end is None)
 }
@@ -14,7 +20,7 @@ test "mapping spans close within a generated line" {
 ///|
 test "source map report tracks duplicate and source usage" {
   let map = lookup_fixture()
-  let report = analyze_source_map(map)
+  let report = @moon_sourcemap.analyze_source_map(map)
   assert_eq(report.sources, 2)
   assert_eq(report.mappings, 4)
   assert_eq(report.mapped_segments, 3)
@@ -46,20 +52,24 @@ test "source map report tracks duplicate and source usage" {
 
 ///|
 test "source map report identifies unreferenced embedded source" {
-  let map = DecodedSourceMap::new(
+  let map = @moon_sourcemap.DecodedSourceMap::new(
     file="bundle.js",
     sources=[
-      SourceEntry::new(url="used.ts"),
-      SourceEntry::new(url="unused.ts", content="unused"),
+      @moon_sourcemap.SourceEntry::new(url="used.ts"),
+      @moon_sourcemap.SourceEntry::new(url="unused.ts", content="unused"),
     ],
     mappings=[
-      Mapping::mapped(
-        generated=Position::new(line=0, column=0),
-        original=OriginalPosition::new(source_index=0, line=0, column=0),
+      @moon_sourcemap.Mapping::mapped(
+        generated=@moon_sourcemap.Position::new(line=0, column=0),
+        original=@moon_sourcemap.OriginalPosition::new(
+          source_index=0,
+          line=0,
+          column=0,
+        ),
       ),
     ],
   )
-  let report = analyze_source_map(map)
+  let report = @moon_sourcemap.analyze_source_map(map)
   assert_eq(report.referenced_sources, 1)
   assert_eq(report.unreferenced_sources, 1)
   assert_eq(report.embedded_sources, 1)

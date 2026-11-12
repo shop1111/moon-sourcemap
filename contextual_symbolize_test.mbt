@@ -1,18 +1,25 @@
 ///|
 test "contextual symbolization includes embedded source lines" {
-  let map = DecodedSourceMap::new(
+  let map = @moon_sourcemap.DecodedSourceMap::new(
     sources=[
-      SourceEntry::new(url="src/app.ts", content="zero\nconst answer = 42\ntwo"),
+      @moon_sourcemap.SourceEntry::new(
+        url="src/app.ts",
+        content="zero\nconst answer = 42\ntwo",
+      ),
     ],
     mappings=[
-      Mapping::mapped(
-        generated=Position::new(line=0, column=0),
-        original=OriginalPosition::new(source_index=0, line=1, column=6),
+      @moon_sourcemap.Mapping::mapped(
+        generated=@moon_sourcemap.Position::new(line=0, column=0),
+        original=@moon_sourcemap.OriginalPosition::new(
+          source_index=0,
+          line=1,
+          column=6,
+        ),
         name="answer",
       ),
     ],
   )
-  let report = symbolize_with_context(
+  let report = @moon_sourcemap.symbolize_with_context(
     map,
     "bundle.js:0:2\nbundle.js:1:0",
     context_radius=1,
@@ -30,7 +37,11 @@ test "contextual symbolization includes embedded source lines" {
 ///|
 test "contextual symbolization validates radius" {
   try
-    symbolize_with_context(DecodedSourceMap::new(), "", context_radius=-1)
+    @moon_sourcemap.symbolize_with_context(
+      @moon_sourcemap.DecodedSourceMap::new(),
+      "",
+      context_radius=-1,
+    )
   catch {
     InvalidField(path~, ..) => assert_eq(path, "$context")
     _ => fail("expected invalid context")

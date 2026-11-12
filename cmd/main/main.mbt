@@ -47,7 +47,7 @@ fn output_of(args : Array[String]) -> String? {
 }
 
 ///|
-fn parse_coordinate(args : Array[String], name : String) -> Int raise {
+fn parse_coordinate(args : Array[String], name : String) -> Int32 raise {
   let value = match option(args, name) {
     Some(value) => value
     None => fail("missing required option \{name}")
@@ -83,7 +83,7 @@ fn diagnostic_text(diagnostics : ArrayView[@lib.Diagnostic]) -> String {
 }
 
 ///|
-fn validate_command(args : Array[String]) -> Int raise {
+fn validate_command(args : Array[String]) -> Int32 raise {
   if args.length() < 3 {
     fail("validate requires a map path")
   }
@@ -102,7 +102,7 @@ fn validate_command(args : Array[String]) -> Int raise {
 }
 
 ///|
-fn inspect_command(args : Array[String]) -> Int raise {
+fn inspect_command(args : Array[String]) -> Int32 raise {
   if args.length() < 3 {
     fail("inspect requires a map path")
   }
@@ -255,7 +255,7 @@ fn lookup_all_text(
 }
 
 ///|
-fn lookup_command(args : Array[String]) -> Int raise {
+fn lookup_command(args : Array[String]) -> Int32 raise {
   if args.length() < 3 {
     fail("lookup requires a map path")
   }
@@ -299,7 +299,7 @@ fn lookup_command(args : Array[String]) -> Int raise {
 }
 
 ///|
-fn flatten_command(args : Array[String]) -> Int raise {
+fn flatten_command(args : Array[String]) -> Int32 raise {
   if args.length() < 3 {
     fail("flatten requires a map path")
   }
@@ -315,7 +315,7 @@ fn flatten_command(args : Array[String]) -> Int raise {
 }
 
 ///|
-fn compose_command(args : Array[String]) -> Int raise {
+fn compose_command(args : Array[String]) -> Int32 raise {
   if args.length() < 4 {
     fail("compose requires outer and inner map paths")
   }
@@ -333,7 +333,7 @@ fn compose_command(args : Array[String]) -> Int raise {
 }
 
 ///|
-fn symbolize_command(args : Array[String]) -> Int raise {
+fn symbolize_command(args : Array[String]) -> Int32 raise {
   if args.length() < 4 {
     fail("symbolize requires a map and frames path")
   }
@@ -375,7 +375,7 @@ fn symbolize_command(args : Array[String]) -> Int raise {
 }
 
 ///|
-fn dispatch(args : Array[String]) -> Int raise {
+fn dispatch(args : Array[String]) -> Int32 raise {
   if args.length() < 2 {
     println(usage())
     return 1

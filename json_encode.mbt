@@ -17,7 +17,7 @@ fn string_json_array(values : ArrayView[String]) -> Json {
 }
 
 ///|
-fn int_json_array(values : ArrayView[Int]) -> Json {
+fn int_json_array(values : ArrayView[Int32]) -> Json {
   Json::array(values.map(value => Json::number(value.to_double())))
 }
 
@@ -88,7 +88,7 @@ pub fn document_to_json(document : SourceMapDocument) -> Json {
 /// Serialize a source map document.
 pub fn encode_document(
   document : SourceMapDocument,
-  indent? : Int = 2,
+  indent~ : Int32 = 2,
 ) -> String {
   document_to_json(document).stringify(indent~)
 }

@@ -1,11 +1,11 @@
 ///|
 test "consumer indexes batch and reverse queries" {
   let map = lookup_fixture()
-  let consumer = SourceMapConsumer::new(map)
+  let consumer = @moon_sourcemap.SourceMapConsumer::new(map)
   let results = consumer.original_positions_for([
-    Position::new(line=0, column=0),
-    Position::new(line=0, column=8),
-    Position::new(line=1, column=0),
+    @moon_sourcemap.Position::new(line=0, column=0),
+    @moon_sourcemap.Position::new(line=0, column=8),
+    @moon_sourcemap.Position::new(line=1, column=0),
   ])
   assert_true(results[0] is Some(_))
   assert_true(results[1] is Some(_))
@@ -16,14 +16,14 @@ test "consumer indexes batch and reverse queries" {
 
 ///|
 test "consumer duplicate bias matches public lookup" {
-  let consumer = SourceMapConsumer::new(lookup_fixture())
+  let consumer = @moon_sourcemap.SourceMapConsumer::new(lookup_fixture())
   let glb = consumer.original_position_for(
-    generated=Position::new(line=0, column=5),
+    generated=@moon_sourcemap.Position::new(line=0, column=5),
   )
   guard glb is Some(glb) else { fail("expected GLB") }
   assert_true(glb.original is None)
   let lub = consumer.original_position_for(
-    generated=Position::new(line=0, column=5),
+    generated=@moon_sourcemap.Position::new(line=0, column=5),
     bias=LeastUpperBound,
   )
   guard lub is Some(lub) else { fail("expected LUB") }
@@ -32,21 +32,31 @@ test "consumer duplicate bias matches public lookup" {
 
 ///|
 test "consumer GetOriginalPositions normalizes unsorted input" {
-  let consumer = SourceMapConsumer::new(
-    DecodedSourceMap::new(mappings=[
-      Mapping::mapped(
-        generated=Position::new(line=2, column=0),
-        original=OriginalPosition::new(source_index=0, line=20, column=0),
+  let consumer = @moon_sourcemap.SourceMapConsumer::new(
+    @moon_sourcemap.DecodedSourceMap::new(mappings=[
+      @moon_sourcemap.Mapping::mapped(
+        generated=@moon_sourcemap.Position::new(line=2, column=0),
+        original=@moon_sourcemap.OriginalPosition::new(
+          source_index=0,
+          line=20,
+          column=0,
+        ),
       ),
-      Mapping::generated_only(generated=Position::new(line=0, column=5)),
-      Mapping::mapped(
-        generated=Position::new(line=0, column=5),
-        original=OriginalPosition::new(source_index=0, line=5, column=1),
+      @moon_sourcemap.Mapping::generated_only(
+        generated=@moon_sourcemap.Position::new(line=0, column=5),
+      ),
+      @moon_sourcemap.Mapping::mapped(
+        generated=@moon_sourcemap.Position::new(line=0, column=5),
+        original=@moon_sourcemap.OriginalPosition::new(
+          source_index=0,
+          line=5,
+          column=1,
+        ),
       ),
     ]),
   )
   let result = consumer.get_original_positions(
-    generated=Position::new(line=1, column=0),
+    generated=@moon_sourcemap.Position::new(line=1, column=0),
   )
   assert_eq(result.length(), 2)
   assert_true(result[0] is None)
@@ -56,18 +66,18 @@ test "consumer GetOriginalPositions normalizes unsorted input" {
 
 ///|
 test "consumer URL lookup preserves duplicate sources" {
-  let map = DecodedSourceMap::new(sources=[
-    SourceEntry::new(url="same.ts"),
-    SourceEntry::new(url="same.ts", content="different"),
+  let map = @moon_sourcemap.DecodedSourceMap::new(sources=[
+    @moon_sourcemap.SourceEntry::new(url="same.ts"),
+    @moon_sourcemap.SourceEntry::new(url="same.ts", content="different"),
   ])
-  let consumer = SourceMapConsumer::new(map)
+  let consumer = @moon_sourcemap.SourceMapConsumer::new(map)
   assert_true(consumer.source_index_for_url("same.ts") == Some(0))
   assert_true(consumer.source_indices_for_url("same.ts") == [0, 1])
 }
 
 ///|
 test "consumer statistics describe coverage" {
-  let consumer = SourceMapConsumer::new(lookup_fixture())
+  let consumer = @moon_sourcemap.SourceMapConsumer::new(lookup_fixture())
   let stats = consumer.stats()
   assert_eq(stats.sources, 2)
   assert_eq(stats.mappings, 4)

@@ -1,9 +1,10 @@
 ///|
 /// Policy for outer mappings that cannot be resolved through the inner map.
+#derive(Eq, Debug)
 pub(all) enum MissingMappingPolicy {
   KeepGenerated
   Drop
-} derive(Eq, Debug)
+}
 
 ///|
 /// Options controlling two-stage map composition.
@@ -26,10 +27,10 @@ pub fn ComposeOptions::default() -> ComposeOptions {
 ///|
 /// Statistics returned by detailed composition.
 pub(all) struct ComposeStats {
-  outer_mappings : Int
-  composed_mappings : Int
-  generated_only : Int
-  dropped : Int
+  outer_mappings : Int32
+  composed_mappings : Int32
+  generated_only : Int32
+  dropped : Int32
 }
 
 ///|
@@ -119,7 +120,7 @@ fn compose_one(
 pub fn compose_with_options(
   outer : DecodedSourceMap,
   inner : DecodedSourceMap,
-  options? : ComposeOptions = ComposeOptions::default(),
+  options~ : ComposeOptions = ComposeOptions::default(),
 ) -> ComposeResult {
   let mappings : Array[Mapping] = []
   let mut composed_mappings = 0
@@ -168,7 +169,7 @@ pub fn compose(
 pub fn compose_json(
   outer_json : StringView,
   inner_json : StringView,
-  indent? : Int,
+  indent? : Int32,
 ) -> String raise SourceMapError {
   let outer = decode_document(parse_document(outer_json))
   let inner = decode_document(parse_document(inner_json))

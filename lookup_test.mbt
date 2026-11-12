@@ -1,24 +1,38 @@
 ///|
-fn lookup_fixture() -> DecodedSourceMap {
-  DecodedSourceMap::new(
+fn lookup_fixture() -> @moon_sourcemap.DecodedSourceMap {
+  @moon_sourcemap.DecodedSourceMap::new(
     sources=[
-      SourceEntry::new(url="src/main.ts"),
-      SourceEntry::new(url="src/lib.ts", ignored=true),
+      @moon_sourcemap.SourceEntry::new(url="src/main.ts"),
+      @moon_sourcemap.SourceEntry::new(url="src/lib.ts", ignored=true),
     ],
     mappings=[
-      Mapping::mapped(
-        generated=Position::new(line=0, column=0),
-        original=OriginalPosition::new(source_index=0, line=2, column=1),
+      @moon_sourcemap.Mapping::mapped(
+        generated=@moon_sourcemap.Position::new(line=0, column=0),
+        original=@moon_sourcemap.OriginalPosition::new(
+          source_index=0,
+          line=2,
+          column=1,
+        ),
         name="start",
       ),
-      Mapping::mapped(
-        generated=Position::new(line=0, column=5),
-        original=OriginalPosition::new(source_index=0, line=2, column=8),
+      @moon_sourcemap.Mapping::mapped(
+        generated=@moon_sourcemap.Position::new(line=0, column=5),
+        original=@moon_sourcemap.OriginalPosition::new(
+          source_index=0,
+          line=2,
+          column=8,
+        ),
       ),
-      Mapping::generated_only(generated=Position::new(line=0, column=5)),
-      Mapping::mapped(
-        generated=Position::new(line=2, column=3),
-        original=OriginalPosition::new(source_index=1, line=4, column=0),
+      @moon_sourcemap.Mapping::generated_only(
+        generated=@moon_sourcemap.Position::new(line=0, column=5),
+      ),
+      @moon_sourcemap.Mapping::mapped(
+        generated=@moon_sourcemap.Position::new(line=2, column=3),
+        original=@moon_sourcemap.OriginalPosition::new(
+          source_index=1,
+          line=4,
+          column=0,
+        ),
       ),
     ],
   )
@@ -26,7 +40,7 @@ fn lookup_fixture() -> DecodedSourceMap {
 
 ///|
 test "decode regular map resolves source metadata" {
-  let map = RegularSourceMap::new(
+  let map = @moon_sourcemap.RegularSourceMap::new(
     file="dist/app.js",
     source_root="../src",
     sources=[Some("./main.ts"), None, Some("util.ts")],
@@ -35,7 +49,7 @@ test "decode regular map resolves source metadata" {
     mappings="AAAAA",
     ignore_list=[2],
   )
-  let decoded = decode_regular_source_map(map)
+  let decoded = @moon_sourcemap.decode_regular_source_map(map)
   assert_true(decoded.sources[0].url == Some("../src/main.ts"))
   assert_true(decoded.sources[0].content == Some("let x = 1"))
   assert_false(decoded.sources[0].ignored)
@@ -49,18 +63,18 @@ test "decode regular map resolves source metadata" {
 ///|
 test "generated lookup supports exact and GLB queries" {
   let map = lookup_fixture()
-  let exact = original_position_for(
+  let exact = @moon_sourcemap.original_position_for(
     map,
-    generated=Position::new(line=0, column=0),
+    generated=@moon_sourcemap.Position::new(line=0, column=0),
   )
   assert_true(exact is Some(_))
   guard exact is Some(exact) else { fail("expected exact mapping") }
   assert_eq(exact.generated.line, 0)
   assert_eq(exact.generated.column, 0)
   assert_true(exact.name == Some("start"))
-  let glb = original_position_for(
+  let glb = @moon_sourcemap.original_position_for(
     map,
-    generated=Position::new(line=0, column=9),
+    generated=@moon_sourcemap.Position::new(line=0, column=9),
   )
   guard glb is Some(glb) else { fail("expected GLB mapping") }
   assert_eq(glb.generated.column, 5)
@@ -70,22 +84,25 @@ test "generated lookup supports exact and GLB queries" {
 ///|
 test "generated lookup supports LUB and line boundaries" {
   let map = lookup_fixture()
-  let lub = original_position_for(
+  let lub = @moon_sourcemap.original_position_for(
     map,
-    generated=Position::new(line=0, column=1),
+    generated=@moon_sourcemap.Position::new(line=0, column=1),
     bias=LeastUpperBound,
   )
   guard lub is Some(lub) else { fail("expected LUB mapping") }
   assert_eq(lub.generated.column, 5)
   assert_true(lub.original is Some(_))
   assert_true(
-    original_position_for(map, generated=Position::new(line=1, column=99))
+    @moon_sourcemap.original_position_for(
+      map,
+      generated=@moon_sourcemap.Position::new(line=1, column=99),
+    )
     is None,
   )
   assert_true(
-    original_position_for(
+    @moon_sourcemap.original_position_for(
       map,
-      generated=Position::new(line=2, column=0),
+      generated=@moon_sourcemap.Position::new(line=2, column=0),
       bias=GreatestLowerBound,
     )
     is None,
@@ -95,9 +112,9 @@ test "generated lookup supports LUB and line boundaries" {
 ///|
 test "GetOriginalPositions returns every duplicate at the global GLB" {
   let map = lookup_fixture()
-  let exact = get_original_positions(
+  let exact = @moon_sourcemap.get_original_positions(
     map,
-    generated=Position::new(line=0, column=5),
+    generated=@moon_sourcemap.Position::new(line=0, column=5),
   )
   assert_eq(exact.length(), 2)
   guard exact[0] is Some(first) else { fail("expected mapped duplicate") }
@@ -105,9 +122,9 @@ test "GetOriginalPositions returns every duplicate at the global GLB" {
   assert_eq(first.line, 2)
   assert_eq(first.column, 8)
   assert_true(exact[1] is None)
-  let between_lines = get_original_positions(
+  let between_lines = @moon_sourcemap.get_original_positions(
     map,
-    generated=Position::new(line=1, column=99),
+    generated=@moon_sourcemap.Position::new(line=1, column=99),
   )
   assert_eq(between_lines.length(), 2)
   assert_true(between_lines[0] is Some(_))
@@ -116,15 +133,20 @@ test "GetOriginalPositions returns every duplicate at the global GLB" {
 
 ///|
 test "GetOriginalPositions distinguishes no match from generated-only" {
-  let map = DecodedSourceMap::new(mappings=[
-    Mapping::generated_only(generated=Position::new(line=0, column=5)),
+  let map = @moon_sourcemap.DecodedSourceMap::new(mappings=[
+    @moon_sourcemap.Mapping::generated_only(
+      generated=@moon_sourcemap.Position::new(line=0, column=5),
+    ),
   ])
   assert_true(
-    get_original_positions(map, generated=Position::new(line=0, column=4)).is_empty(),
+    @moon_sourcemap.get_original_positions(
+      map,
+      generated=@moon_sourcemap.Position::new(line=0, column=4),
+    ).is_empty(),
   )
-  let generated_only = get_original_positions(
+  let generated_only = @moon_sourcemap.get_original_positions(
     map,
-    generated=Position::new(line=0, column=5),
+    generated=@moon_sourcemap.Position::new(line=0, column=5),
   )
   assert_eq(generated_only.length(), 1)
   assert_true(generated_only[0] is None)
@@ -133,9 +155,18 @@ test "GetOriginalPositions distinguishes no match from generated-only" {
 ///|
 test "reverse lookup filters line and optional column" {
   let map = lookup_fixture()
-  let on_line = generated_positions_for(map, source_index=0, line=2)
+  let on_line = @moon_sourcemap.generated_positions_for(
+    map,
+    source_index=0,
+    line=2,
+  )
   assert_eq(on_line.length(), 2)
-  let at_column = generated_positions_for(map, source_index=0, line=2, column=8)
+  let at_column = @moon_sourcemap.generated_positions_for(
+    map,
+    source_index=0,
+    line=2,
+    column=8,
+  )
   assert_eq(at_column.length(), 1)
   assert_eq(at_column[0].generated.line, 0)
   assert_eq(at_column[0].generated.column, 5)
@@ -145,12 +176,16 @@ test "reverse lookup filters line and optional column" {
 test "mapping source resolution is bounds checked" {
   let map = lookup_fixture()
   let mapping = map.mappings[0]
-  let source = source_for_mapping(map, mapping)
+  let source = @moon_sourcemap.source_for_mapping(map, mapping)
   guard source is Some(source) else { fail("expected source") }
   assert_true(source.url == Some("src/main.ts"))
-  let bad = Mapping::mapped(
-    generated=Position::new(line=0, column=0),
-    original=OriginalPosition::new(source_index=9, line=0, column=0),
+  let bad = @moon_sourcemap.Mapping::mapped(
+    generated=@moon_sourcemap.Position::new(line=0, column=0),
+    original=@moon_sourcemap.OriginalPosition::new(
+      source_index=9,
+      line=0,
+      column=0,
+    ),
   )
-  assert_true(source_for_mapping(map, bad) is None)
+  assert_true(@moon_sourcemap.source_for_mapping(map, bad) is None)
 }

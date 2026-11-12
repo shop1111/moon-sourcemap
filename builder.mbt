@@ -14,14 +14,14 @@ pub(all) struct SourceMapBuilder {
 ///|
 /// Create an empty source map builder.
 pub fn SourceMapBuilder::new(file? : String) -> SourceMapBuilder {
-  { file, sources: [], names: [], mappings: [] }
+  { file, sources: [], names: [], mappings: [], }
 }
 
 ///|
 fn source_entry_index(
   sources : ArrayView[SourceEntry],
   target : SourceEntry,
-) -> Int? {
+) -> Int32? {
   for index, source in sources {
     if source == target {
       return Some(index)
@@ -31,7 +31,7 @@ fn source_entry_index(
 }
 
 ///|
-fn string_index(values : ArrayView[String], target : String) -> Int? {
+fn string_index(values : ArrayView[String], target : String) -> Int32? {
   for index, value in values {
     if value == target {
       return Some(index)
@@ -46,8 +46,8 @@ pub fn SourceMapBuilder::add_source(
   self : SourceMapBuilder,
   url? : String,
   content? : String,
-  ignored? : Bool = false,
-) -> Int {
+  ignored~ : Bool = false,
+) -> Int32 {
   let entry = SourceEntry::new(url?, content?, ignored~)
   match source_entry_index(self.sources, entry) {
     Some(index) => index
@@ -64,7 +64,7 @@ pub fn SourceMapBuilder::add_source(
 pub fn SourceMapBuilder::add_name(
   self : SourceMapBuilder,
   name : String,
-) -> Int {
+) -> Int32 {
   match string_index(self.names, name) {
     Some(index) => index
     None => {
@@ -108,9 +108,9 @@ pub fn SourceMapBuilder::add_generated(
 pub fn SourceMapBuilder::add_mapping(
   self : SourceMapBuilder,
   generated~ : Position,
-  source_index~ : Int,
-  original_line~ : Int,
-  original_column~ : Int,
+  source_index~ : Int32,
+  original_line~ : Int32,
+  original_column~ : Int32,
   name? : String,
 ) -> Unit raise SourceMapError {
   check_builder_order(self.mappings, generated)
@@ -154,13 +154,13 @@ pub fn SourceMapBuilder::build(
 
 ///|
 /// Number of interned sources.
-pub fn SourceMapBuilder::source_count(self : SourceMapBuilder) -> Int {
+pub fn SourceMapBuilder::source_count(self : SourceMapBuilder) -> Int32 {
   self.sources.length()
 }
 
 ///|
 /// Number of emitted mappings.
-pub fn SourceMapBuilder::mapping_count(self : SourceMapBuilder) -> Int {
+pub fn SourceMapBuilder::mapping_count(self : SourceMapBuilder) -> Int32 {
   self.mappings.length()
 }
 

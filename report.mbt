@@ -3,56 +3,60 @@
 ///
 /// `end=None` means the segment remains active to the end of its generated
 /// line. A next mapping on another line does not close the previous line.
+#derive(Eq, Debug)
 pub(all) struct GeneratedSpan {
   mapping : Mapping
   end : Position?
-} derive(Eq, Debug)
+}
 
 ///|
 /// Per-source mapping usage metrics.
+#derive(Eq, Debug)
 pub(all) struct SourceUsage {
-  source_index : Int
+  source_index : Int32
   url : String?
-  mapped_segments : Int
-  named_segments : Int
-  original_lines : Int
+  mapped_segments : Int32
+  named_segments : Int32
+  original_lines : Int32
   ignored : Bool
   has_content : Bool
-} derive(Eq, Debug)
+}
 
 ///|
 /// Mapping distribution for one generated line.
+#derive(Eq, Debug)
 pub(all) struct GeneratedLineUsage {
-  line : Int
-  segments : Int
-  mapped_segments : Int
-  generated_only_segments : Int
-  named_segments : Int
-  duplicate_positions : Int
-  first_column : Int
-  last_column : Int
-} derive(Eq, Debug)
+  line : Int32
+  segments : Int32
+  mapped_segments : Int32
+  generated_only_segments : Int32
+  named_segments : Int32
+  duplicate_positions : Int32
+  first_column : Int32
+  last_column : Int32
+}
 
 ///|
 /// Structural quality report for one decoded source map.
+#derive(Eq, Debug)
 pub(all) struct SourceMapReport {
   file : String?
-  sources : Int
-  mappings : Int
-  mapped_segments : Int
-  generated_only_segments : Int
-  named_segments : Int
-  ignored_sources : Int
-  embedded_sources : Int
-  referenced_sources : Int
-  unreferenced_sources : Int
-  generated_lines : Int
-  original_lines : Int
-  duplicate_positions : Int
-  open_spans : Int
+  sources : Int32
+  mappings : Int32
+  mapped_segments : Int32
+  generated_only_segments : Int32
+  named_segments : Int32
+  ignored_sources : Int32
+  embedded_sources : Int32
+  referenced_sources : Int32
+  unreferenced_sources : Int32
+  generated_lines : Int32
+  original_lines : Int32
+  duplicate_positions : Int32
+  open_spans : Int32
   source_usage : Array[SourceUsage]
   generated_line_usage : Array[GeneratedLineUsage]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Return whether a generated position is covered by this span.
@@ -72,7 +76,7 @@ pub fn GeneratedSpan::contains(
 
 ///|
 /// Return the finite column width, or `None` for an open span.
-pub fn GeneratedSpan::column_width(self : GeneratedSpan) -> Int? {
+pub fn GeneratedSpan::column_width(self : GeneratedSpan) -> Int32? {
   match self.end {
     Some(end) =>
       if end.line == self.mapping.generated.line {
@@ -103,7 +107,7 @@ pub fn mapping_spans(map : DecodedSourceMap) -> Array[GeneratedSpan] {
     } else {
       None
     }
-    spans.push({ mapping, end })
+    spans.push({ mapping, end, })
   }
   spans
 }
@@ -112,7 +116,7 @@ pub fn mapping_spans(map : DecodedSourceMap) -> Array[GeneratedSpan] {
 /// Return spans beginning on one generated line.
 pub fn mapping_spans_for_line(
   map : DecodedSourceMap,
-  line : Int,
+  line : Int32,
 ) -> Array[GeneratedSpan] {
   if line < 0 {
     return []
@@ -121,7 +125,7 @@ pub fn mapping_spans_for_line(
 }
 
 ///|
-fn duplicate_generated_positions(mappings : ArrayView[Mapping]) -> Int {
+fn duplicate_generated_positions(mappings : ArrayView[Mapping]) -> Int32 {
   if mappings.length() < 2 {
     return 0
   }
@@ -136,9 +140,12 @@ fn duplicate_generated_positions(mappings : ArrayView[Mapping]) -> Int {
 }
 
 ///|
-fn source_usage_for(map : DecodedSourceMap, source_index : Int) -> SourceUsage {
+fn source_usage_for(
+  map : DecodedSourceMap,
+  source_index : Int32,
+) -> SourceUsage {
   let source = map.sources[source_index]
-  let lines : Map[Int, Unit] = Map([])
+  let lines : Map[Int32, Unit] = Map([])
   let mut mapped_segments = 0
   let mut named_segments = 0
   for mapping in map.mappings {
@@ -188,7 +195,7 @@ fn generated_line_usage(map : DecodedSourceMap) -> Array[GeneratedLineUsage] {
     let mut generated_only_segments = 0
     let mut named_segments = 0
     let mut duplicate_positions = 0
-    let mut previous_column : Int? = None
+    let mut previous_column : Int32? = None
     while cursor < sorted.length() && sorted[cursor].generated.line == line {
       let mapping = sorted[cursor]
       segments = segments + 1
@@ -443,7 +450,9 @@ pub fn analyze_source_map_json(
 
 ///|
 /// Percentage of sources referenced by at least one mapping.
-pub fn SourceMapReport::source_coverage_percent(self : SourceMapReport) -> Int {
+pub fn SourceMapReport::source_coverage_percent(
+  self : SourceMapReport,
+) -> Int32 {
   if self.sources == 0 {
     100
   } else {
@@ -453,7 +462,9 @@ pub fn SourceMapReport::source_coverage_percent(self : SourceMapReport) -> Int {
 
 ///|
 /// Percentage of segments carrying original positions.
-pub fn SourceMapReport::mapping_coverage_percent(self : SourceMapReport) -> Int {
+pub fn SourceMapReport::mapping_coverage_percent(
+  self : SourceMapReport,
+) -> Int32 {
   if self.mappings == 0 {
     100
   } else {
@@ -463,7 +474,9 @@ pub fn SourceMapReport::mapping_coverage_percent(self : SourceMapReport) -> Int 
 
 ///|
 /// Percentage of sources with embedded content.
-pub fn SourceMapReport::content_coverage_percent(self : SourceMapReport) -> Int {
+pub fn SourceMapReport::content_coverage_percent(
+  self : SourceMapReport,
+) -> Int32 {
   if self.sources == 0 {
     100
   } else {
@@ -505,7 +518,7 @@ pub fn SourceMapReport::summary(self : SourceMapReport) -> String {
 /// Return generated-line metrics for an exact line number.
 pub fn SourceMapReport::generated_line(
   self : SourceMapReport,
-  line : Int,
+  line : Int32,
 ) -> GeneratedLineUsage? {
   for usage in self.generated_line_usage {
     if usage.line == line {
@@ -535,7 +548,7 @@ pub fn SourceMapReport::busiest_generated_line(
 
 ///|
 /// Count generated lines that contain no mapping segments.
-pub fn SourceMapReport::empty_generated_lines(self : SourceMapReport) -> Int {
+pub fn SourceMapReport::empty_generated_lines(self : SourceMapReport) -> Int32 {
   if self.generated_lines == 0 {
     return 0
   }
@@ -546,8 +559,8 @@ pub fn SourceMapReport::empty_generated_lines(self : SourceMapReport) -> Int {
 /// Return source indexes that are never referenced by mappings.
 pub fn SourceMapReport::unreferenced_source_indices(
   self : SourceMapReport,
-) -> Array[Int] {
-  let result : Array[Int] = []
+) -> Array[Int32] {
+  let result : Array[Int32] = []
   for usage in self.source_usage {
     if usage.mapped_segments == 0 {
       result.push(usage.source_index)
@@ -560,8 +573,8 @@ pub fn SourceMapReport::unreferenced_source_indices(
 /// Return source indexes marked as ignored.
 pub fn SourceMapReport::ignored_source_indices(
   self : SourceMapReport,
-) -> Array[Int] {
-  let result : Array[Int] = []
+) -> Array[Int32] {
+  let result : Array[Int32] = []
   for usage in self.source_usage {
     if usage.ignored {
       result.push(usage.source_index)
@@ -574,8 +587,8 @@ pub fn SourceMapReport::ignored_source_indices(
 /// Return source indexes without embedded source content.
 pub fn SourceMapReport::sources_without_content(
   self : SourceMapReport,
-) -> Array[Int] {
-  let result : Array[Int] = []
+) -> Array[Int32] {
+  let result : Array[Int32] = []
   for usage in self.source_usage {
     if !usage.has_content {
       result.push(usage.source_index)
@@ -588,8 +601,8 @@ pub fn SourceMapReport::sources_without_content(
 /// Return generated line numbers containing duplicate positions.
 pub fn SourceMapReport::lines_with_duplicates(
   self : SourceMapReport,
-) -> Array[Int] {
-  let result : Array[Int] = []
+) -> Array[Int32] {
+  let result : Array[Int32] = []
   for usage in self.generated_line_usage {
     if usage.duplicate_positions > 0 {
       result.push(usage.line)
@@ -602,8 +615,8 @@ pub fn SourceMapReport::lines_with_duplicates(
 /// Return generated lines containing at least one generated-only segment.
 pub fn SourceMapReport::generated_only_lines(
   self : SourceMapReport,
-) -> Array[Int] {
-  let result : Array[Int] = []
+) -> Array[Int32] {
+  let result : Array[Int32] = []
   for usage in self.generated_line_usage {
     if usage.generated_only_segments > 0 {
       result.push(usage.line)
@@ -622,7 +635,7 @@ pub fn SourceUsage::is_referenced(self : SourceUsage) -> Bool {
 /// Percentage of segments on this line that carry original positions.
 pub fn GeneratedLineUsage::mapping_coverage_percent(
   self : GeneratedLineUsage,
-) -> Int {
+) -> Int32 {
   if self.segments == 0 {
     100
   } else {
@@ -632,7 +645,7 @@ pub fn GeneratedLineUsage::mapping_coverage_percent(
 
 ///|
 /// Percentage of mapped segments that preserve a symbol name.
-pub fn SourceMapReport::named_mapping_percent(self : SourceMapReport) -> Int {
+pub fn SourceMapReport::named_mapping_percent(self : SourceMapReport) -> Int32 {
   if self.mapped_segments == 0 {
     100
   } else {
@@ -642,7 +655,7 @@ pub fn SourceMapReport::named_mapping_percent(self : SourceMapReport) -> Int {
 
 ///|
 /// Percentage of source entries marked as ignored.
-pub fn SourceMapReport::ignored_source_percent(self : SourceMapReport) -> Int {
+pub fn SourceMapReport::ignored_source_percent(self : SourceMapReport) -> Int32 {
   if self.sources == 0 {
     0
   } else {
@@ -654,7 +667,7 @@ pub fn SourceMapReport::ignored_source_percent(self : SourceMapReport) -> Int {
 /// Find the usage summary for a source index.
 pub fn SourceMapReport::source(
   self : SourceMapReport,
-  source_index : Int,
+  source_index : Int32,
 ) -> SourceUsage? {
   for usage in self.source_usage {
     if usage.source_index == source_index {
@@ -674,7 +687,9 @@ pub fn SourceMapReport::has_quality_warnings(self : SourceMapReport) -> Bool {
 
 ///|
 /// Count source entries that are both referenced and backed by embedded text.
-pub fn SourceMapReport::usable_embedded_sources(self : SourceMapReport) -> Int {
+pub fn SourceMapReport::usable_embedded_sources(
+  self : SourceMapReport,
+) -> Int32 {
   let mut count = 0
   for usage in self.source_usage {
     if usage.is_referenced() && usage.has_content {

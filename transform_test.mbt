@@ -1,20 +1,33 @@
 ///|
 test "canonicalize resolves duplicates and prunes sources" {
-  let map = DecodedSourceMap::new(
-    sources=[SourceEntry::new(url="unused.ts"), SourceEntry::new(url="used.ts")],
+  let map = @moon_sourcemap.DecodedSourceMap::new(
+    sources=[
+      @moon_sourcemap.SourceEntry::new(url="unused.ts"),
+      @moon_sourcemap.SourceEntry::new(url="used.ts"),
+    ],
     mappings=[
-      Mapping::generated_only(generated=Position::new(line=0, column=1)),
-      Mapping::mapped(
-        generated=Position::new(line=0, column=0),
-        original=OriginalPosition::new(source_index=1, line=2, column=3),
+      @moon_sourcemap.Mapping::generated_only(
+        generated=@moon_sourcemap.Position::new(line=0, column=1),
       ),
-      Mapping::mapped(
-        generated=Position::new(line=0, column=1),
-        original=OriginalPosition::new(source_index=1, line=4, column=5),
+      @moon_sourcemap.Mapping::mapped(
+        generated=@moon_sourcemap.Position::new(line=0, column=0),
+        original=@moon_sourcemap.OriginalPosition::new(
+          source_index=1,
+          line=2,
+          column=3,
+        ),
+      ),
+      @moon_sourcemap.Mapping::mapped(
+        generated=@moon_sourcemap.Position::new(line=0, column=1),
+        original=@moon_sourcemap.OriginalPosition::new(
+          source_index=1,
+          line=4,
+          column=5,
+        ),
       ),
     ],
   )
-  let result = canonicalize(map)
+  let result = @moon_sourcemap.canonicalize(map)
   assert_eq(result.map.sources.length(), 1)
   assert_eq(result.map.mappings.length(), 2)
   assert_eq(result.report.duplicates_removed, 1)
@@ -28,35 +41,53 @@ test "canonicalize resolves duplicates and prunes sources" {
 ///|
 test "generated slice is half open and shifts safely" {
   let map = lookup_fixture()
-  let sliced = slice_generated(
+  let sliced = @moon_sourcemap.slice_generated(
     map,
-    start=Position::new(line=0, column=5),
-    end=Position::new(line=2, column=3),
+    start=@moon_sourcemap.Position::new(line=0, column=5),
+    end=@moon_sourcemap.Position::new(line=2, column=3),
   )
   assert_eq(sliced.mappings.length(), 1)
-  let shifted = shift_generated(sliced, line_delta=4, first_line_column_delta=7)
+  let shifted = @moon_sourcemap.shift_generated(
+    sliced,
+    line_delta=4,
+    first_line_column_delta=7,
+  )
   assert_eq(shifted.mappings[0].generated.line, 4)
   assert_eq(shifted.mappings[0].generated.column, 12)
 }
 
 ///|
 test "concatenate offsets and remaps sources" {
-  let first = DecodedSourceMap::new(sources=[SourceEntry::new(url="a.ts")], mappings=[
-    Mapping::mapped(
-      generated=Position::new(line=0, column=1),
-      original=OriginalPosition::new(source_index=0, line=0, column=0),
-    ),
-  ])
-  let second = DecodedSourceMap::new(sources=[SourceEntry::new(url="b.ts")], mappings=[
-    Mapping::mapped(
-      generated=Position::new(line=0, column=2),
-      original=OriginalPosition::new(source_index=0, line=1, column=0),
-    ),
-  ])
-  let result = concatenate(
+  let first = @moon_sourcemap.DecodedSourceMap::new(
+    sources=[@moon_sourcemap.SourceEntry::new(url="a.ts")],
+    mappings=[
+      @moon_sourcemap.Mapping::mapped(
+        generated=@moon_sourcemap.Position::new(line=0, column=1),
+        original=@moon_sourcemap.OriginalPosition::new(
+          source_index=0,
+          line=0,
+          column=0,
+        ),
+      ),
+    ],
+  )
+  let second = @moon_sourcemap.DecodedSourceMap::new(
+    sources=[@moon_sourcemap.SourceEntry::new(url="b.ts")],
+    mappings=[
+      @moon_sourcemap.Mapping::mapped(
+        generated=@moon_sourcemap.Position::new(line=0, column=2),
+        original=@moon_sourcemap.OriginalPosition::new(
+          source_index=0,
+          line=1,
+          column=0,
+        ),
+      ),
+    ],
+  )
+  let result = @moon_sourcemap.concatenate(
     [
-      (Position::new(line=0, column=0), first),
-      (Position::new(line=1, column=4), second),
+      (@moon_sourcemap.Position::new(line=0, column=0), first),
+      (@moon_sourcemap.Position::new(line=1, column=4), second),
     ],
     file="bundle.js",
   )
